@@ -425,12 +425,17 @@
   });
 
   // --- Firestore Helpers ---
-  async function pushScore(payload){
-    if(!currentUid) throw new Error("Not authenticated");
-    const doc = { ...payload, uid: currentUid, ts: serverTimestamp() };
-    await addDoc(collection(db, "leaderboard"), doc);
-    return true;
-  }
+ async function pushScore(payload){
+  if(!currentUid) throw new Error("Not authenticated");
+  const doc = {
+    ...payload,
+    uid: currentUid,           // <— wichtig für Rules
+    ts: serverTimestamp()
+  };
+  await addDoc(collection(db, "leaderboard"), doc);
+  return true;
+}
+
 
   async function fetchLeaderboard(groupId, max=25){
     const q = query(
@@ -888,7 +893,9 @@ async function pushToCloudSafe(force=false){
     showToast("Ergebnis online veröffentlicht ✅");
   }catch(e){
     console.warn("Cloud publish failed:", e);
-    showToast("Veröffentlichung fehlgeschlagen (offline?)");
+    const msg = (e && e.message) ? e.message :
+                (typeof e === 'string' ? e : 'Unbekannter Fehler');
+    showToast("Veröffentlichung fehlgeschlagen: " + msg);
   }
 }
 
@@ -1192,6 +1199,7 @@ function resetProgress(){
 
 </body>
 </html>
+
 
 
 
