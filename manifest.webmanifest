@@ -1,24 +1,10 @@
 {
   "name": "Johann’s Personal Mathe Trainer",
   "short_name": "Mathe Trainer",
-  "start_url": "./",
+  "start_url": ".",
+  "scope": ".",
   "display": "standalone",
-  "background_color": "#0b1228",
   "theme_color": "#7c3aed",
-  "lang": "de-DE",
-  "description": "Kopfrechnen mit Plus, Minus, Mal, Geteilt – Profile, Ränge & Tipps.",
-  "icons": [
-    {
-      "src": "icon-192.png",
-      "type": "image/png",
-      "sizes": "192x192",
-      "purpose": "any"
-    },
-    {
-      "src": "icon-512.png",
-      "type": "image/png",
-      "sizes": "512x512",
-      "purpose": "any"
-    }
-  ]
+  "background_color": "#0b1228",
+  "description": "Kopfrechnen-Training mit Rängen, Streaks und Tipps."
 }

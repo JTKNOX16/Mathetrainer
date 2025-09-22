@@ -1,50 +1,43 @@
-// Simple offline cache for the Mathe-Trainer
-const CACHE_NAME = 'mathetrainer-v1';
-const PRECACHE = [
+// service-worker.js
+const CACHE_NAME = 'mathetrainer-v3';
+const ASSETS = [
   './',
   './index.html',
   './manifest.webmanifest'
-  // Falls du später eigene Dateien/Ordner hast: './css/styles.css', './js/app.js', etc.
 ];
 
+// Install: Assets cachen
 self.addEventListener('install', (event) => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(PRECACHE))
-  );
   self.skipWaiting();
-});
-
-self.addEventListener('activate', (event) => {
   event.waitUntil(
-    caches.keys().then(keys =>
-      Promise.all(keys.map(k => (k === CACHE_NAME ? null : caches.delete(k))))
-    )
+    caches.open(CACHE_NAME).then((cache) => cache.addAll(ASSETS).catch(()=>{}))
   );
-  self.clients.claim();
 });
 
-// Cache-first für Navigation & statische Assets
+// Activate: alte Caches löschen
+self.addEventListener('activate', (event) => {
+  event.waitUntil((async () => {
+    const keys = await caches.keys();
+    await Promise.all(keys.map(k => (k !== CACHE_NAME ? caches.delete(k) : Promise.resolve())));
+    await self.clients.claim();
+  })());
+});
+
+// Fetch: Cache-First, danach Netzwerk (für gleiche Origin)
 self.addEventListener('fetch', (event) => {
   const req = event.request;
-  // Nur GET cachen
-  if (req.method !== 'GET') return;
+  const url = new URL(req.url);
 
-  // Für Navigationsanfragen (Seitenaufrufe) immer index.html aus dem Cache bevorzugen (SPA/Ein-Seiter)
-  if (req.mode === 'navigate') {
+  if (url.origin === self.location.origin) {
     event.respondWith(
-      caches.match('./index.html').then(cached => cached || fetch('./index.html'))
+      caches.match(req).then(cached => {
+        const fetchPromise = fetch(req).then(resp => {
+          const copy = resp.clone();
+          caches.open(CACHE_NAME).then(cache => cache.put(req, copy)).catch(()=>{});
+          return resp;
+        }).catch(()=> cached);
+        return cached || fetchPromise;
+      })
     );
-    return;
   }
-
-  // Sonst: Cache first, dann Netzwerk
-  event.respondWith(
-    caches.match(req).then(cached =>
-      cached || fetch(req).then(resp => {
-        const respClone = resp.clone();
-        caches.open(CACHE_NAME).then(cache => cache.put(req, respClone));
-        return resp;
-      }).catch(() => cached) // Fallback: wenn offline und nicht im Cache → nichts
-    )
-  );
 });

@@ -216,7 +216,7 @@
           </span>
           <button class="btn primary" id="startBlockBtn">Block starten</button>
         </div>
-        <div style="font-size:13px; color:var(--muted)">Ein Block vergibt Bonus-XP bei guter Genauigkeit & kurzer Ø Zeit.</div>
+        <div style="font-size:13px; color:#9fb0d0">Ein Block vergibt Bonus-XP bei guter Genauigkeit & kurzer Ø Zeit.</div>
       </div>
 
       <div class="panel" style="border-style:dashed">
@@ -227,7 +227,7 @@
           <li>⚡ Schnell (≤3s): +<b>5 XP</b>, (≤6s): +<b>2 XP</b></li>
           <li>🎯 Block-Bonus: bis zu <b>+50 XP</b> (Genauigkeit & Ø Zeit)</li>
         </ul>
-        <div style="font-size:13px; color:var(--muted)">Fortschritt wird pro Profil lokal gespeichert.</div>
+        <div style="font-size:13px; color:#9fb0d0">Fortschritt wird pro Profil lokal gespeichert.</div>
       </div>
 
       <div class="panel" style="border-style:dashed">
@@ -298,7 +298,7 @@
 </div>
 
 <script>
-/* ===== Helpers ===== */
+/* ===== Small helpers & UI map ===== */
 const $ = sel => document.querySelector(sel);
 const opsEls = { add:$("#op_add"), sub:$("#op_sub"), mul:$("#op_mul"), div:$("#op_div") };
 const ui = {
@@ -375,55 +375,68 @@ const AVATAR_IDS = ["kenji","nova","sparky","astro"];
 
 /* ===== Profiles & State ===== */
 const defaultStats = ()=>({xp:0,correct:0,total:0,streak:0,bestStreak:0,times:[],history:[]});
+
+function saveProfiles(){ localStorage.setItem("jpt:profiles:v3", JSON.stringify(profiles)); }
+function loadProfiles(){
+  try{
+    const raw = localStorage.getItem("jpt:profiles:v3");
+    return raw ? JSON.parse(raw) : {currentId:null, items:[]};
+  }catch(e){
+    return {currentId:null, items:[]};
+  }
+}
+
 let profiles = loadProfiles();
-if(profiles.items.length===0){
+if(!profiles || !profiles.items || profiles.items.length===0){
   const id = "p1";
   profiles = {currentId:id, items:[{id, name:"Johann", avatar:"kenji", settings:{mute:false,speech:false,level:3}, stats:defaultStats()}]};
   saveProfiles();
 }
-populateProfileSelect();
-let state = hydrateStateFromProfile();
-applySettingsToUI();
+
+function currentProfile(){ return profiles.items.find(p=>p.id===profiles.currentId) || profiles.items[0]; }
+
+function hydrateStateFromProfile(){
+  const p = currentProfile(); const s = (p && p.stats) ? p.stats : defaultStats();
+  return {
+    xp: s.xp||0, correct:s.correct||0, total:s.total||0, streak:s.streak||0, bestStreak:s.bestStreak||0,
+    mode: "adaptive",
+    level: (p && p.settings && p.settings.level) ? p.settings.level : 3,
+    ops:{add:true,sub:true,mul:true,div:true},
+    times: s.times||[]
+  };
+}
+
+function applySettingsToUI(){
+  const p = currentProfile();
+  ui.muteToggle.checked = !!(p.settings && p.settings.mute);
+  ui.speechToggle.checked = !!(p.settings && p.settings.speech);
+  ui.level.value = state.level; ui.levelLabel.textContent = state.level;
+  for(const k of Object.keys(opsEls)) opsEls[k].checked = !!state.ops[k];
+}
+
+function persist(){
+  const p = currentProfile();
+  p.stats = { xp:state.xp, correct:state.correct, total:state.total, streak:state.streak, bestStreak:state.bestStreak, times:state.times, history:(p.stats && p.stats.history) ? p.stats.history : [] };
+  p.settings = p.settings || {}; p.settings.level = state.level;
+  saveProfiles();
+}
+
+function populateProfileSelect(){
+  ui.profileSelect.innerHTML = "";
+  for(const p of profiles.items){
+    const o = document.createElement("option"); o.value = p.id; o.textContent = p.name || "Spieler";
+    if(p.id===profiles.currentId) o.selected = true;
+    ui.profileSelect.appendChild(o);
+  }
+}
 
 /* ===== Game vars ===== */
+let state = hydrateStateFromProfile();
+applySettingsToUI();
+populateProfileSelect();
+
 let currentQ = null, tStart = 0, hintTimer = null, voice = null;
 let block = { active:false, size:15, index:0, correct:0, total:0, times:[], xpEarned:0 };
-
-/* ===== Events ===== */
-ui.submit.addEventListener("click", check);
-ui.skip.addEventListener("click", () => { feedbackNeutral("Aufgabe übersprungen."); newQuestion(true); });
-ui.ans.addEventListener("keydown", e => { if(e.key==="Enter"){ check(); } if(e.key===" "){ e.preventDefault(); ui.skip.click(); } });
-ui.reset.addEventListener("click", resetProgress);
-ui.celebrate.addEventListener("click", celebrate);
-ui.mode.addEventListener("change", () => { state.mode = ui.mode.value; persist(); });
-ui.level.addEventListener("input", () => { ui.levelLabel.textContent = ui.level.value; });
-ui.level.addEventListener("change", () => { state.level = +ui.level.value; persist(); newQuestion(true); });
-for (const [k,el] of Object.entries(opsEls)){ el.addEventListener("change", ()=>{ state.ops[k]=el.checked; persist(); newQuestion(true); }); }
-ui.tipBtn.addEventListener("click", showStrategyTip);
-ui.startBlockBtn.addEventListener("click", () => {
-  block.size = +ui.blockSize.value;
-  block.active = true; block.index = 0; block.correct = 0; block.total = 0; block.times = []; block.xpEarned = 0;
-  updateBlockBar(); speak("Block gestartet. Viel Erfolg!"); showToast(`Block gestartet: ${block.size} Aufgaben`); newQuestion(true);
-});
-ui.manageProfilesBtn.addEventListener("click", openProfiles);
-ui.closeProfilesBtn.addEventListener("click", ()=> ui.profilesModal.classList.remove("show"));
-ui.saveProfileBtn.addEventListener("click", saveOrCreateProfile);
-ui.profileSelect.addEventListener("change", onProfileChange);
-ui.muteToggle.addEventListener("change", ()=>{ currentProfile().settings.mute = ui.muteToggle.checked; saveProfiles(); });
-ui.speechToggle.addEventListener("change", ()=>{ currentProfile().settings.speech = ui.speechToggle.checked; saveProfiles(); });
-ui.statsBtn.addEventListener("click", openStats);
-ui.closeStatsBtn.addEventListener("click", ()=> ui.statsModal.classList.remove("show"));
-ui.exportCsvBtn.addEventListener("click", exportCSV);
-
-/* ===== Init ===== */
-window.addEventListener("load", () => {
-  initVoices();
-  updateHUD();
-  ui.kenjiAvatar.innerHTML = kenjiIdleSVG();
-  newQuestion();
-  // PWA: Service Worker registrieren
-  if ('serviceWorker' in navigator) navigator.serviceWorker.register('./service-worker.js').catch(()=>{});
-});
 
 /* ===== Voices / Speech ===== */
 function initVoices(){
@@ -436,12 +449,20 @@ function initVoices(){
   if('speechSynthesis' in window){ speechSynthesis.onvoiceschanged = pick; pick(); }
 }
 function stripHtml(s){ const tmp = document.createElement("div"); tmp.innerHTML = s; return tmp.textContent || tmp.innerText || ""; }
+// kompatibel: ohne \p{…}
 function stripEmoji(text){
-  try { return text.replace(/[\p{Emoji_Presentation}\p{Extended_Pictographic}\p{Emoji}]/gu, "").trim(); }
-  catch(e){
-    const ranges=[/\uD83C[\uDF00-\uDFFF]/g,/\uD83D[\uDC00-\uDEFF]/g,/\uD83E[\uDD00-\uDDFF]/g,/[\u2600-\u27BF]/g];
-    let out=text; for(const rx of ranges) out=out.replace(rx,""); return out.trim();
-  }
+  let out = String(text ?? "");
+  const ranges = [
+    /[\u2700-\u27BF]/g,          // Dingbats
+    /[\uE000-\uF8FF]/g,          // Private Use Area
+    /[\uD83C][\uDF00-\uDFFF]/g,  // U+1F300–1F3FF
+    /[\uD83D][\uDC00-\uDEFF]/g,  // U+1F400–1F6FF
+    /[\uD83E][\uDD00-\uDDFF]/g,  // U+1F900–1F9FF
+    /[\u2600-\u26FF]/g,          // Misc Symbols
+    /[\u2190-\u21FF]/g           // Arrows
+  ];
+  for(const rx of ranges) out = out.replace(rx, "");
+  return out.trim();
 }
 function speak(text){
   if(!currentProfile().settings.speech) return;
@@ -455,6 +476,7 @@ function speak(text){
 /* ===== Sounds (WebAudio) ===== */
 let audioCtx = null;
 function ensureAudio(){ if(audioCtx) return audioCtx; audioCtx = new (window.AudioContext||window.webkitAudioContext)(); return audioCtx; }
+// iOS/Chrome Autoplay-Policy: beim ersten Tap Audio entsperren
 window.addEventListener("pointerdown", () => {
   try { const ctx = ensureAudio(); if (ctx && ctx.state === "suspended") ctx.resume(); } catch(_) {}
 },{ once:true });
@@ -469,18 +491,43 @@ function sfxCorrect(){ tone(880,120,"triangle",0.07); setTimeout(()=>tone(1320,1
 function sfxWrong(){ tone(220,180,"sawtooth",0.06); setTimeout(()=>tone(160,200,"sawtooth",0.05),150); }
 function sfxRank(){ tone(660,120,"square",0.06); setTimeout(()=>tone(990,140,"square",0.05),110); setTimeout(()=>tone(1320,160,"square",0.04),220); }
 
-/* ===== Gameplay ===== */
-function newQuestion(silent=false){
-  if(!Object.values(state.ops || {add:true,sub:true,mul:true,div:true}).some(Boolean)){ state.ops = {add:true,sub:true,mul:true,div:true}; opsEls.add.checked = true; }
-  hideTip();
-  const q = generateQuestion(getDifficulty());
-  currentQ = q;
-  ui.q.textContent = `${q.a} ${q.sym} ${q.b} = ?`;
-  ui.ans.value = ""; ui.ans.focus();
-  tStart = performance.now();
-  scheduleHint();
-  if(!silent){ feedbackNeutral(block.active ? `Aufgabe ${block.index+1||1}/${block.size}` : "Los geht's!"); showBanner("Kenji sagt: Viel Erfolg!", "neutral"); }
+/* ===== Utility ===== */
+function feedbackCorrect(html){ ui.feedback.innerHTML = `<span class="correct">${html}</span>`; }
+function feedbackWrong(html){ ui.feedback.innerHTML = `<span class="wrong">${html}</span>`; }
+function feedbackNeutral(html){ ui.feedback.innerHTML = `<span class="neutral">${html}</span>`; }
+function r(min,max){ return Math.floor(Math.random()*(max-min+1))+min; }
+function clamp(x,a,b){ return Math.max(a, Math.min(b, x)); }
+function showToast(text){ ui.toast.innerHTML = text; ui.toast.classList.remove("show"); void ui.toast.offsetWidth; ui.toast.classList.add("show"); setTimeout(()=> ui.toast.classList.remove("show"), 2600); }
+
+/* ===== Math tips ===== */
+function strategyFor(q){
+  if(!q) return "Atme tief durch, lies die Aufgabe laut vor und schätze erst – dann rechne.";
+  const {a,b,op} = q;
+  if(op==="add"){
+    if((a%10)+(b%10) >= 10) return `Zehnerübergang: Rechne ${a} + ${b} als (${a} + ${10-(a%10)}) + (${b-(10-(a%10))}).`;
+    return `Tauschaufgabe & Zerlegen: Rechne zuerst die größere Zahl und ergänze auf den nächsten Zehner.`;
+  }
+  if(op==="sub"){
+    if((a%10) < (b%10)) return `Ergänzen: Denke ${a} − ${b} als „Wie viel fehlt von ${b} zu ${a}?“. Erst bis zum vollen Zehner, dann weiter.`;
+    return `Zerlegen: Rechne ${a} − ${b} in zwei Schritten: erst Einer, dann Zehner.`;
+  }
+  if(op==="mul"){
+    if(a===0 || b===0) return "Alles mal Null ist Null.";
+    if(a===1 || b===1) return "Alles mal Eins bleibt gleich.";
+    const big = Math.max(a,b), small = Math.min(a,b);
+    if(small===2) return `Verdoppeln: ${big}×2 = ${big+big}.`;
+    if(small===5) return `×5 = Halbieren und ×10: ${big}×5 = (${big}÷2)×10.`;
+    return `Zerlegen: ${a}×${b} = ${a}×(${Math.floor(b/2)} + ${Math.ceil(b/2)}) = Teilprodukte addieren.`;
+  }
+  if(op==="div"){
+    if(b===1) return `Teilen durch 1 ändert nichts.`;
+    if(a===0) return `Null geteilt durch etwas ist Null.`;
+    return `Umkehraufgabe: „Welche Zahl mal ${b} ergibt ${a}?“`;
+  }
+  return "Lies die Aufgabe noch einmal und markiere dir die wichtigen Zahlen mit dem Finger.";
 }
+
+/* ===== Gameplay ===== */
 function getDifficulty(){
   if(state.mode==="fixed") return state.level;
   const acc = state.total ? (state.correct/state.total) : 1;
@@ -499,6 +546,35 @@ function generateQuestion(level){
   else { const cap = Math.max(3, Math.round(span/12)); b = r(1, cap); const q = r(0, cap); a = b*q; ans = q; sym = "÷"; }
   return {a,b,ans,sym,op};
 }
+function scheduleHint(){ clearTimeout(hintTimer); hintTimer = setTimeout(() => ui.tipBtn.classList.add("show"), 10000); }
+function hideTip(){ clearTimeout(hintTimer); ui.tipBtn.classList.remove("show"); ui.coachBox.style.display = "none"; }
+function showStrategyTip(){ const tip = strategyFor(currentQ); ui.tipBubble.innerHTML = "💡 <b>Kenji:</b> " + tip; ui.coachBox.style.display = "flex"; speak(tip); }
+
+function newQuestion(silent=false){
+  if(!Object.values(state.ops || {add:true,sub:true,mul:true,div:true}).some(Boolean)){ state.ops = {add:true,sub:true,mul:true,div:true}; opsEls.add.checked = true; }
+  hideTip();
+  currentQ = generateQuestion(getDifficulty());
+  ui.q.textContent = `${currentQ.a} ${currentQ.sym} ${currentQ.b} = ?`;
+  ui.ans.value = ""; ui.ans.focus();
+  tStart = performance.now();
+  scheduleHint();
+  if(!silent){ feedbackNeutral(block.active ? `Aufgabe ${block.index+1||1}/${block.size}` : "Los geht's!"); showBanner("Kenji sagt: Viel Erfolg!", "neutral"); }
+}
+
+function scoreFor(seconds, streak){
+  const base = 10; let bonus = 0;
+  if(seconds <= 3) bonus += 5; else if(seconds <= 6) bonus += 2;
+  bonus += Math.min(streak, 10) * 1;
+  return base + bonus;
+}
+function speedText(s){ if(s<=3) return "⚡"; if(s<=6) return "⏱️"; return ""; }
+
+function addHistoryEntry(ok, secs){
+  const p = currentProfile();
+  p.stats.history = p.stats.history || [];
+  p.stats.history.push({ t: Date.now(), ok: !!ok, s: +secs.toFixed(3) });
+}
+
 function check(){
   const raw = ui.ans.value.trim(); if(raw===""){ feedbackNeutral("Bitte gib eine Zahl ein."); ui.ans.focus(); return; }
   const guess = Number(raw);
@@ -527,14 +603,7 @@ function check(){
     if(block.active && block.index>=block.size){ endBlock(); } else { setTimeout(()=>newQuestion(true), 900); }
   }
 }
-function addHistoryEntry(ok, secs){
-  const p = currentProfile();
-  p.stats.history = p.stats.history || [];
-  p.stats.history.push({ t: Date.now(), ok: !!ok, s: +secs.toFixed(3) });
-}
-function scheduleHint(){ clearTimeout(hintTimer); hintTimer = setTimeout(() => ui.tipBtn.classList.add("show"), 10000); }
-function hideTip(){ clearTimeout(hintTimer); ui.tipBtn.classList.remove("show"); ui.coachBox.style.display = "none"; }
-function showStrategyTip(){ const tip = strategyFor(currentQ); ui.tipBubble.innerHTML = "💡 <b>Kenji:</b> " + tip; ui.coachBox.style.display = "flex"; speak(tip); }
+
 function endBlock(){
   const acc = block.total ? Math.round((block.correct/block.total)*100) : 0;
   const avg = block.times.length ? (block.times.reduce((a,b)=>a+b,0)/block.times.length) : 0;
@@ -547,13 +616,6 @@ function endBlock(){
   block.active=false; block.index=0; updateBlockBar();
 }
 function updateBlockBar(){ ui.blockFill.style.width = block.active ? (Math.min(1, block.index/Math.max(1, block.size))*100).toFixed(1)+"%" : "0%"; }
-function scoreFor(seconds, streak){
-  const base = 10; let bonus = 0;
-  if(seconds <= 3) bonus += 5; else if(seconds <= 6) bonus += 2;
-  bonus += Math.min(streak, 10) * 1;
-  return base + bonus;
-}
-function speedText(s){ if(s<=3) return "⚡"; if(s<=6) return "⏱️"; return ""; }
 
 /* ===== HUD / Rank ===== */
 function updateHUD(){
@@ -650,115 +712,7 @@ function kenjiDoubleThumbsSVG(){ return `
     <path d="M44 86 C64 76, 96 76, 116 86 L110 108 L50 108 Z" fill="#a78bfa"/>
   </svg>`; }
 
-/* ===== Tips ===== */
-function strategyFor(q){
-  if(!q) return "Atme tief durch, lies die Aufgabe laut vor und schätze erst – dann rechne.";
-  const {a,b,op} = q;
-  if(op==="add"){
-    if((a%10)+(b%10) >= 10) return `Zehnerübergang: Rechne ${a} + ${b} als (${a} + ${10-(a%10)}) + (${b-(10-(a%10))}).`;
-    return `Tauschaufgabe & Zerlegen: Rechne zuerst die größere Zahl und ergänze auf den nächsten Zehner.`;
-  }
-  if(op==="sub"){
-    if((a%10) < (b%10)) return `Ergänzen: Denke ${a} − ${b} als „Wie viel fehlt von ${b} zu ${a}?“. Erst bis zum vollen Zehner, dann weiter.`;
-    return `Zerlegen: Rechne ${a} − ${b} in zwei Schritten: erst Einer, dann Zehner.`;
-  }
-  if(op==="mul"){
-    if(a===0 || b===0) return "Alles mal Null ist Null.";
-    if(a===1 || b===1) return "Alles mal Eins bleibt gleich.";
-    const big = Math.max(a,b), small = Math.min(a,b);
-    if(small===2) return `Verdoppeln: ${big}×2 = ${big+big}.`;
-    if(small===5) return `×5 = Halbieren und ×10: ${big}×5 = (${big}÷2)×10.`;
-    return `Zerlegen: ${a}×${b} = ${a}×(${Math.floor(b/2)} + ${Math.ceil(b/2)}) = Teilprodukte addieren.`;
-  }
-  if(op==="div"){
-    if(b===1) return `Teilen durch 1 ändert nichts.`;
-    if(a===0) return `Null geteilt durch etwas ist Null.`;
-    return `Umkehraufgabe: „Welche Zahl mal ${b} ergibt ${a}?“`;
-  }
-  return "Lies die Aufgabe noch einmal und markiere dir die wichtigen Zahlen mit dem Finger.";
-}
-
-/* ===== Profiles ===== */
-function populateProfileSelect(){
-  ui.profileSelect.innerHTML = "";
-  for(const p of profiles.items){
-    const o = document.createElement("option"); o.value = p.id; o.textContent = p.name || "Spieler";
-    if(p.id===profiles.currentId) o.selected = true; ui.profileSelect.appendChild(o);
-  }
-}
-function onProfileChange(){
-  profiles.currentId = ui.profileSelect.value; saveProfiles();
-  state = hydrateStateFromProfile(); applySettingsToUI();
-  updateHUD(); newQuestion(true);
-}
-function openProfiles(){
-  ui.avatarGrid.innerHTML = "";
-  AVATAR_IDS.forEach(id=>{
-    const d = document.createElement("div"); d.className="avatar"; d.dataset.id=id; d.innerHTML = avatarSVG(id);
-    if(currentProfile().avatar===id) d.classList.add("selected");
-    d.addEventListener("click", ()=>{
-      document.querySelectorAll(".avatar").forEach(a=>a.classList.remove("selected"));
-      d.classList.add("selected"); ui.avatarGrid.dataset.selected = id;
-    });
-    ui.avatarGrid.appendChild(d);
-  });
-  ui.profileName.value = currentProfile().name || "";
-  ui.avatarGrid.dataset.selected = currentProfile().avatar || "kenji";
-  ui.profilesModal.classList.add("show");
-}
-function saveOrCreateProfile(){
-  const name = ui.profileName.value.trim() || "Spieler";
-  const avatar = ui.avatarGrid.dataset.selected || "kenji";
-  const cur = currentProfile();
-  if(cur){ cur.name = name; cur.avatar = avatar; if(!cur.settings) cur.settings = {mute:false,speech:false,level:3}; }
-  else{
-    const id = "p"+(Math.random().toString(36).slice(2,7));
-    profiles.items.push({id, name, avatar, settings:{mute:false,speech:false,level:3}, stats:defaultStats()});
-    profiles.currentId = id;
-  }
-  saveProfiles(); populateProfileSelect(); ui.profilesModal.classList.remove("show");
-}
-function currentProfile(){ return profiles.items.find(p=>p.id===profiles.currentId) || profiles.items[0]; }
-function hydrateStateFromProfile(){
-  const p = currentProfile(); const s = (p && p.stats) ? p.stats : defaultStats();
-  return {
-    xp: s.xp||0, correct:s.correct||0, total:s.total||0, streak:s.streak||0, bestStreak:s.bestStreak||0,
-    mode: "adaptive", level: (p.settings && p.settings.level) ? p.settings.level : 3,
-    ops:{add:true,sub:true,mul:true,div:true}, times: s.times||[]
-  };
-}
-function applySettingsToUI(){
-  const p = currentProfile(); ui.muteToggle.checked = !!(p.settings && p.settings.mute);
-  ui.speechToggle.checked = !!(p.settings && p.settings.speech);
-  ui.level.value = state.level; ui.levelLabel.textContent = state.level;
-  for(const k of Object.keys(opsEls)) opsEls[k].checked = !!state.ops[k];
-}
-function persist(){
-  const p = currentProfile();
-  p.stats = { xp:state.xp, correct:state.correct, total:state.total, streak:state.streak, bestStreak:state.bestStreak, times:state.times, history:(p.stats.history||[]) };
-  p.settings = p.settings || {}; p.settings.level = state.level;
-  saveProfiles();
-}
-function saveProfiles(){ localStorage.setItem("jpt:profiles:v3", JSON.stringify(profiles)); }
-function loadProfiles(){ try{ const raw = localStorage.getItem("jpt:profiles:v3"); return raw? JSON.parse(raw) : {currentId:null, items:[]}; }catch(e){ return {currentId:null, items:[]}; }
-
-/* ===== Utility ===== */
-function feedbackCorrect(html){ ui.feedback.innerHTML = `<span class="correct">${html}</span>`; }
-function feedbackWrong(html){ ui.feedback.innerHTML = `<span class="wrong">${html}</span>`; }
-function feedbackNeutral(html){ ui.feedback.innerHTML = `<span class="neutral">${html}</span>`; }
-function r(min,max){ return Math.floor(Math.random()*(max-min+1))+min; }
-function clamp(x,a,b){ return Math.max(a, Math.min(b, x)); }
-function showToast(text){ ui.toast.innerHTML = text; ui.toast.classList.remove("show"); void ui.toast.offsetWidth; ui.toast.classList.add("show"); setTimeout(()=> ui.toast.classList.remove("show"), 2600); }
-
-/* ===== Reset ===== */
-function resetProgress(){
-  if(confirm("Fortschritt dieses Profils wirklich löschen? (XP, Genauigkeit, Serien, Zeiten, Verlauf)")){
-    const p = currentProfile(); p.stats = defaultStats(); saveProfiles();
-    state = hydrateStateFromProfile(); updateHUD(); newQuestion(true);
-  }
-}
-
-/* ===== Statistik ===== */
+/* ===== Stats & charts ===== */
 function openStats(){
   const p = currentProfile(); const s = p.stats || defaultStats();
   const total = s.total||0, correct = s.correct||0, acc = total? Math.round(correct/total*100): 0;
@@ -815,6 +769,94 @@ function line(ctx, data, w, h, min, max){
   ctx.stroke(); ctx.restore();
 }
 function map(t, aMin, aMax, bMin, bMax){ return bMin + (t-aMin)*(bMax-bMin)/(aMax-aMin); }
+
+/* ===== Profiles UI ===== */
+function onProfileChange(){
+  profiles.currentId = ui.profileSelect.value; saveProfiles();
+  state = hydrateStateFromProfile(); applySettingsToUI();
+  updateHUD(); newQuestion(true);
+}
+function openProfiles(){
+  ui.avatarGrid.innerHTML = "";
+  AVATAR_IDS.forEach(id=>{
+    const d = document.createElement("div"); d.className="avatar"; d.dataset.id=id; d.innerHTML = avatarSVG(id);
+    if(currentProfile().avatar===id) d.classList.add("selected");
+    d.addEventListener("click", ()=>{
+      document.querySelectorAll(".avatar").forEach(a=>a.classList.remove("selected"));
+      d.classList.add("selected"); ui.avatarGrid.dataset.selected = id;
+    });
+    ui.avatarGrid.appendChild(d);
+  });
+  ui.profileName.value = currentProfile().name || "";
+  ui.avatarGrid.dataset.selected = currentProfile().avatar || "kenji";
+  ui.profilesModal.classList.add("show");
+}
+function saveOrCreateProfile(){
+  const name = ui.profileName.value.trim() || "Spieler";
+  const avatar = ui.avatarGrid.dataset.selected || "kenji";
+  const cur = currentProfile();
+  if(cur){ cur.name = name; cur.avatar = avatar; if(!cur.settings) cur.settings = {mute:false,speech:false,level:3}; }
+  else{
+    const id = "p"+(Math.random().toString(36).slice(2,7));
+    profiles.items.push({id, name, avatar, settings:{mute:false,speech:false,level:3}, stats:defaultStats()});
+    profiles.currentId = id;
+  }
+  saveProfiles(); populateProfileSelect(); ui.profilesModal.classList.remove("show");
+}
+
+/* ===== Events ===== */
+ui.submit.addEventListener("click", check);
+ui.skip.addEventListener("click", () => { feedbackNeutral("Aufgabe übersprungen."); newQuestion(true); });
+ui.ans.addEventListener("keydown", e => { if(e.key==="Enter"){ check(); } if(e.key===" "){ e.preventDefault(); ui.skip.click(); } });
+ui.reset.addEventListener("click", resetProgress);
+ui.celebrate.addEventListener("click", celebrate);
+ui.mode.addEventListener("change", () => { state.mode = ui.mode.value; persist(); });
+ui.level.addEventListener("input", () => { ui.levelLabel.textContent = ui.level.value; });
+ui.level.addEventListener("change", () => { state.level = +ui.level.value; persist(); newQuestion(true); });
+for (const [k,el] of Object.entries(opsEls)){ el.addEventListener("change", ()=>{ state.ops[k]=el.checked; persist(); newQuestion(true); }); }
+ui.tipBtn.addEventListener("click", showStrategyTip);
+
+ui.startBlockBtn.addEventListener("click", () => {
+  block.size = +ui.blockSize.value;
+  block.active = true; block.index = 0; block.correct = 0; block.total = 0; block.times = []; block.xpEarned = 0;
+  updateBlockBar(); speak("Block gestartet. Viel Erfolg!"); showToast(`Block gestartet: ${block.size} Aufgaben`); newQuestion(true);
+});
+
+ui.manageProfilesBtn.addEventListener("click", openProfiles);
+ui.closeProfilesBtn.addEventListener("click", ()=> ui.profilesModal.classList.remove("show"));
+ui.saveProfileBtn.addEventListener("click", saveOrCreateProfile);
+ui.profileSelect.addEventListener("change", onProfileChange);
+ui.muteToggle.addEventListener("change", ()=>{ currentProfile().settings.mute = ui.muteToggle.checked; saveProfiles(); });
+ui.speechToggle.addEventListener("change", ()=>{ currentProfile().settings.speech = ui.speechToggle.checked; saveProfiles(); });
+
+ui.statsBtn.addEventListener("click", openStats);
+ui.closeStatsBtn.addEventListener("click", ()=> ui.statsModal.classList.remove("show"));
+ui.exportCsvBtn.addEventListener("click", exportCSV);
+
+/* ===== Reset ===== */
+function resetProgress(){
+  if(confirm("Fortschritt dieses Profils wirklich löschen? (XP, Genauigkeit, Serien, Zeiten, Verlauf)")){
+    const p = currentProfile(); p.stats = defaultStats(); saveProfiles();
+    state = hydrateStateFromProfile(); updateHUD(); newQuestion(true);
+  }
+}
+
+/* ===== Block/HUD helpers ===== */
+function updateBlockBar(){ ui.blockFill.style.width = block.active ? (Math.min(1, block.index/Math.max(1, block.size))*100).toFixed(1)+"%" : "0%"; }
+
+/* ===== Init & SW ===== */
+function updateAfterLoad(){
+  initVoices();
+  updateHUD();
+  ui.kenjiAvatar.innerHTML = kenjiIdleSVG();
+  newQuestion();
+  // Service Worker registrieren
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('./service-worker.js').catch(()=>{});
+  }
+}
+window.addEventListener("load", updateAfterLoad);
 </script>
 </body>
 </html>
+
