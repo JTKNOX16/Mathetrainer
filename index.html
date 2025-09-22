@@ -2,507 +2,664 @@
 <html lang="de">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>Johann’s Personal Mathe Trainer</title>
-  <meta name="theme-color" content="#7c3aed">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Johanns Personal Mathetrainer</title>
+  <meta name="theme-color" content="#0ea5e9">
+  <link rel="manifest" href="manifest.json">
   <style>
-    /* --- (gleiches Styling wie zuvor; gekürzt hier – volle Version wie gehabt) --- */
-    :root{ --bg1:#0ea5e9; --bg2:#7c3aed; --bg3:#14b8a6; --panel:#0b1228; --muted:#9fb0d0; --text:#ffffff; --ok:#22c55e; --warn:#f59e0b; --bad:#ef4444; --info:#60a5fa; }
-    html,body{height:100%}
-    body{ margin:0; padding-top: calc(10px + env(safe-area-inset-top)); padding-left: env(safe-area-inset-left); padding-right: env(safe-area-inset-right); padding-bottom: env(safe-area-inset-bottom);
-      background: radial-gradient(1100px 700px at 20% -10%, rgba(255,255,255,.12) 0, transparent 60%),
-                  radial-gradient(900px 600px at 120% 10%, rgba(255,255,255,.08) 0, transparent 60%),
-                  linear-gradient(135deg, var(--bg1), var(--bg2) 60%, var(--bg3));
-      color:var(--text); font:16px/1.55 ui-rounded, system-ui, -apple-system, "SF Pro Rounded", "Segoe UI", Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
-      display:flex; align-items:flex-start; justify-content:center; }
-    .app{ width:min(1120px, 98vw); }
-    .comic-title{ display:flex; align-items:center; justify-content:center; margin:8px 0 10px; text-align:center; padding:6px 8px; }
-    .comic-title h1{ margin:0; font-weight:1000; letter-spacing:.5px; font-size: clamp(24px, 6vw, 44px); color:#fff; text-shadow:2px 2px 0 #ef4444, -2px 2px 0 #22c55e, 2px -2px 0 #60a5fa, -2px -2px 0 #f59e0b, 0 0 10px rgba(0,0,0,.35); }
-    header{ display:flex; gap:14px; align-items:center; justify-content:space-between; margin:6px 0 10px; flex-wrap:wrap; }
-    .title{display:flex; gap:12px; align-items:center}
-    .logo{ width:56px;height:56px;border-radius:16px; background: conic-gradient(from 0deg, #f97316, #f59e0b, #22c55e, #14b8a6, #60a5fa, #a78bfa, #f472b6, #f97316); position:relative; display:grid; place-items:center; box-shadow:0 10px 30px rgba(0,0,0,.25); }
-    .logo svg{ filter: drop-shadow(0 3px 6px rgba(0,0,0,.25)); }
-    .brand h2{font-weight:900; font-size:clamp(16px,3.2vw,24px); margin:0}
-    .brand p{color:#f3f4f6; opacity:.9; margin:.5px 0 0; font-size:13px}
-    .panel{ background:linear-gradient(180deg, rgba(3,7,30,.82), rgba(10,15,45,.9)); border:2px solid rgba(255,255,255,.08); border-radius:18px; padding:16px; box-shadow:0 14px 36px rgba(0,0,0,.35); backdrop-filter: blur(6px); }
-    .grid{display:grid; gap:16px}
-    .cols{grid-template-columns: 1.25fr .75fr}
-    @media (max-width:900px){ .cols{grid-template-columns: 1fr} }
-    .controls{display:flex; flex-wrap:wrap; gap:10px; align-items:center}
-    .chip{border:2px solid #2b376e; background:#0c1540; color:var(--text); padding:8px 10px; border-radius:12px; user-select:none; display:flex; align-items:center}
-    .btn{ border:2px solid #2b376e; background:linear-gradient(180deg,#1d2a6b,#141c4a); color:var(--text); padding:10px 14px; border-radius:14px; font-weight:800; letter-spacing:.2px; }
-    .btn.small{ padding:6px 10px; font-weight:700; font-size:14px }
-    .btn.primary{ border-color:#1b7a3d; background:linear-gradient(180deg,#13a66a,#0d7b4c) }
-    .btn.warn{ border-color:#7a5a1b; background:linear-gradient(180deg,#d97706,#b45309) }
-    .btn.ghost{ background:linear-gradient(180deg,#101847,#0c1333); border-color:#39438a }
-    .badge{ padding:8px 12px; border-radius:999px; border:2px solid #3a3f86; background:linear-gradient(180deg,#0f1a53,#0b133b); font-weight:900; }
-    .rankbar{height:14px; background:#0e1634; border:1px solid #29336b; border-radius:999px; overflow:hidden}
-    .rankfill{height:100%; width:0%; background:linear-gradient(90deg, #34d399, #f59e0b, #60a5fa); transition:width .35s ease}
-    .ranklabel{display:flex; justify-content:space-between; font-size:13px; color:#c7d2fe; margin:6px 4px 0}
-    .question{ font-size: clamp(30px, 5.2vw, 50px); font-weight:900; letter-spacing:1px; text-align:center; padding:18px 12px; border-radius:16px; background:linear-gradient(160deg,#0f1a53,#0c1540); border:2px solid #2a3369; }
-    .answerrow{display:flex; gap:10px; justify-content:center; align-items:center; margin-top:12px; flex-wrap:wrap}
-    input[type="number"]{ width:170px; font-size:30px; padding:12px 12px; border-radius:12px; border:2px solid #334155; background:#0b1228; color:var(--text); outline:none; text-align:center; font-weight:900; }
-    .meta{display:flex; gap:12px; flex-wrap:wrap; justify-content:center; color:#dbeafe; font-size:14px}
-    .bigstat{display:grid; place-items:center; padding:14px; border-radius:12px; border:2px dashed #3b436f; background:#0d1848}
-    .footer{display:flex; gap:12px; justify-content:space-between; align-items:center; margin-top:8px; flex-wrap:wrap}
-    .toast{ position: fixed; left: 50%; transform: translateX(-50%); top: 16px; background: #0b133b; border:2px solid #39438a; padding:10px 14px; border-radius:12px; font-weight:800; letter-spacing:.2px; display:none; z-index:28 }
-    .toast.show{ display:block; animation: fadeOut 2000ms 1800ms forwards; }
-    .modal{ position:fixed; inset:0; display:none; place-items:center; background:rgba(0,0,0,.45); z-index:40 }
-    .modal .box{ background:#0b133b; border:2px solid #39438a; border-radius:16px; padding:18px; width:min(820px, 96vw); }
-    .modal.show{ display:grid; }
-    .list{border:2px solid #39438a; border-radius:12px; overflow:hidden}
-    .row{display:grid; grid-template-columns: 1fr 1fr 1fr 1fr; gap:0; border-bottom:1px solid #2b376e; padding:8px 10px}
-    .row.h{ background:#0b153f; font-weight:800 }
-    .row:last-child{ border-bottom:none }
-    .pill{padding:4px 8px; border:1px solid #39438a; border-radius:999px; font-size:12px}
+    :root{
+      --bg:#0b1020;
+      --card:#141a2e;
+      --muted:#94a3b8;
+      --accent:#0ea5e9;
+      --ok:#10b981;
+      --warn:#f59e0b;
+      --bad:#ef4444;
+      --ring:#38bdf8;
+      --text:#e5e7eb;
+    }
+    *{box-sizing:border-box}
+    html,body{margin:0;height:100%;background:linear-gradient(180deg,#0b1020 0%,#0f172a 100%);color:var(--text);font-family:system-ui,Segoe UI,Roboto,Helvetica,Arial}
+    .container{max-width:980px;margin:0 auto;padding:16px}
+    /* Topbar */
+    .topbar{display:flex;align-items:center;gap:12px;justify-content:space-between;margin-bottom:12px}
+    .title{display:flex;align-items:center;gap:10px;font-weight:800;font-size:clamp(18px,3.5vw,28px);letter-spacing:.4px}
+    .pill{display:inline-flex;align-items:center;gap:6px;background:linear-gradient(135deg,#0ea5e933,#22d3ee22);border:1px solid #22d3ee44;padding:6px 10px;border-radius:999px;font-size:12px}
+    .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+    .card{background:linear-gradient(180deg,#0f172a,#0b1222);border:1px solid #33415555;border-radius:16px;padding:14px;box-shadow:0 10px 30px #00000040}
+    .hud{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+    .hud .tile{background:#0b1222;border:1px solid #33415555;border-radius:12px;padding:10px;text-align:center}
+    .hud .tile .k{font-size:12px;color:var(--muted)}
+    .hud .tile .v{font-weight:700;font-size:20px;margin-top:2px}
+    .stage{display:grid;grid-template-columns:1.1fr .9fr;gap:12px}
+    @media (max-width:860px){.stage{grid-template-columns:1fr}}
+    .coach{display:flex;gap:12px;align-items:center}
+    .coach-ava{width:56px;height:56px;border-radius:50%;background:radial-gradient(circle at 30% 30%,#22d3ee,#0ea5e9);border:2px solid #22d3eeaa;display:grid;place-items:center;box-shadow:0 6px 18px #0891b233}
+    .coach-ava svg{filter:drop-shadow(0 2px 2px #0008)}
+    .banner{flex:1;background:linear-gradient(135deg,#0ea5e922,#22d3ee11);border:1px dashed #22d3ee66;border-radius:14px;padding:10px 12px}
+    .banner .h{font-weight:700}
+    .controls .group{display:flex;gap:8px;flex-wrap:wrap}
+    .btn{background:#0b1222;border:1px solid #33415577;border-radius:12px;padding:10px 12px;color:var(--text);cursor:pointer}
+    .btn:hover{border-color:#22d3eeaa;box-shadow:0 0 0 2px #22d3ee22 inset}
+    .btn.primary{background:linear-gradient(135deg,#0ea5e9,#22d3ee);color:#041119;font-weight:800}
+    .btn.ok{background:linear-gradient(135deg,#10b981,#34d399);color:#03160f}
+    .btn.warn{background:linear-gradient(135deg,#f59e0b,#fbbf24);color:#1a1203}
+    .select,.input{background:#0b1222;border:1px solid #33415577;color:var(--text);border-radius:10px;padding:10px 12px}
+    .q-card{min-height:150px;display:grid;gap:10px}
+    .q{font-size:clamp(22px,4.6vw,36px);font-weight:800;text-align:center;letter-spacing:.5px}
+    .answer{display:flex;gap:8px;justify-content:center}
+    .help{font-size:12px;color:var(--muted)}
+    .footer{margin-top:16px;display:flex;justify-content:space-between;align-items:center;color:var(--muted);font-size:12px}
+    .badge{display:inline-flex;gap:6px;align-items:center;background:#0b1222;border:1px solid #33415577;border-radius:10px;padding:6px 10px}
+    dialog{border:none;border-radius:16px;max-width:800px;width:92%;background:#0b1222;color:var(--text);padding:0}
+    dialog .dlg-head{padding:14px 16px;border-bottom:1px solid #33415566;font-weight:800}
+    dialog .dlg-body{padding:16px}
+    dialog .dlg-foot{padding:12px 16px;border-top:1px solid #33415566;display:flex;justify-content:flex-end}
+    table{width:100%;border-collapse:collapse;font-size:14px}
+    th,td{padding:8px;border-bottom:1px solid #33415555;text-align:left}
+    .spark{height:40px;width:100%;display:block}
+    .sr-only{position:absolute;left:-9999px}
+    .switch{display:inline-flex;gap:8px;align-items:center}
+    .switch input{appearance:none;width:42px;height:24px;border-radius:999px;background:#1f2937;position:relative;outline:none;border:1px solid #334155;cursor:pointer}
+    .switch input:checked{background:#22d3ee55;border-color:#22d3eeaa}
+    .switch input::after{content:"";position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:#e5e7eb;transition:all .2s}
+    .switch input:checked::after{left:22px;background:#041119}
+    .tag{font-size:11px;padding:2px 6px;border-radius:8px;border:1px solid #334155aa;color:#cbd5e1}
   </style>
 </head>
 <body>
-<div class="app">
-
-  <div class="comic-title"><h1>Kopfrechnen ist doch easy!</h1></div>
-
-  <header>
-    <div class="title">
-      <div class="logo" aria-hidden="true" title="JPT">
-        <svg width="40" height="40" viewBox="0 0 64 64" aria-hidden="true">
-          <path d="M8 46 L56 46 L52 24 L40 34 L32 18 L22 34 L12 24 Z" fill="#fde047" stroke="#a16207" stroke-width="3" />
-          <circle cx="12" cy="24" r="3" fill="#f472b6"></circle>
-          <circle cx="32" cy="18" r="3" fill="#60a5fa"></circle>
-          <circle cx="52" cy="24" r="3" fill="#34d399"></circle>
-          <text x="32" y="58" text-anchor="middle" font-family="ui-rounded, system-ui" font-weight="900" font-size="18" fill="#fff">JPT</text>
-        </svg>
+  <div class="container">
+    <!-- Topbar -->
+    <div class="topbar">
+      <div class="title">
+        <span style="display:inline-grid;place-items:center;width:30px;height:30px;border-radius:8px;background:radial-gradient(circle at 30% 30%,#22d3ee,#0ea5e9);border:1px solid #22d3ee77;box-shadow:0 4px 12px #0891b233">➗</span>
+        <span>Johanns Personal Mathetrainer</span>
+        <span class="pill"><span id="rankName">Recruit</span> <span class="tag" id="rankBadge">Rang: Recruit</span></span>
       </div>
-      <div class="brand">
-        <h2>Johann’s Personal Mathe Trainer</h2>
-        <p>Plus • Minus • Mal • Geteilt – mit Rangaufstieg & Tipps von <b>Kenji</b></p>
+      <div class="row">
+        <label class="switch" title="Sprachausgabe an/aus">
+          <input id="ttsToggle" type="checkbox" />
+          <span>Sprachausgabe</span>
+        </label>
+        <button id="btnStats" class="btn">📊 Statistik</button>
       </div>
     </div>
 
-    <div class="controls">
-      <span class="chip">Profil:
-        <select id="profileSelect" style="background:#0b1225;color:#fff;border:2px solid #334155;border-radius:10px;padding:6px;min-width:160px"></select>
-      </span>
-      <button class="btn small" id="manageProfilesBtn">Profile…</button>
-      <button class="btn small" id="statsBtn">Statistik…</button>
-      <button class="btn small" id="leaderboardBtn">Bestenliste…</button>
-      <label class="chip"><input type="checkbox" id="muteToggle"> Ton aus</label>
-      <label class="chip"><input type="checkbox" id="speechToggle"> Sprachausgabe</label>
-      <div id="rankBadge" class="badge">Rang: Rookie</div>
+    <!-- HUD -->
+    <div class="hud">
+      <div class="tile"><div class="k">Profil</div><div class="v" id="hudProfile">–</div></div>
+      <div class="tile"><div class="k">XP</div><div class="v" id="hudXP">0</div></div>
+      <div class="tile"><div class="k">Streak</div><div class="v" id="hudStreak">0</div></div>
+      <div class="tile"><div class="k">Genauigkeit</div><div class="v" id="hudAcc">–</div></div>
     </div>
-  </header>
 
-  <div class="panel motivation" id="motivation">
-    <div class="mot-avatar" id="motAvatar"></div>
-    <div class="mot-text" id="motText">Los geht’s!</div>
-  </div>
-
-  <div class="panel grid cols" role="region" aria-label="Spielbereich">
-    <section class="grid" aria-live="polite">
-      <div class="question" id="question">3 + 4 = ?</div>
-      <div class="answerrow">
-        <input id="answer" type="number" inputmode="numeric" enterkeyhint="done" autocomplete="off" autocorrect="off" aria-label="Antwort eingeben" />
-        <button class="btn primary" id="submitBtn">Antwort prüfen ⏎</button>
-        <button class="btn ghost" id="skipBtn" title="Neue Aufgabe (ohne Wertung)">Überspringen</button>
-        <button class="btn warn tipbtn" id="tipBtn">💡 Tipp anzeigen</button>
-      </div>
-
-      <div class="coach" id="coachBox" style="display:none">
-        <div class="coach-avatar" aria-hidden="true" id="kenjiAvatar"></div>
-        <div class="bubble" id="tipBubble">💡 <b>Kenji:</b> Ich habe einen Tipp – probier mal das Zerlegen in Zehner!</div>
-      </div>
-
-      <div class="meta" id="feedback"><span class="neutral">Viel Erfolg! 🧠</span></div>
-
-      <div class="grid cols">
-        <div class="bigstat">Genauigkeit<br><b id="acc">100%</b></div>
-        <div class="bigstat">Serie (Streak)<br><b id="streak">0</b></div>
-      </div>
-
-      <div class="grid" id="timingStats">
-        <div class="bigstat">Ø Zeit<br><b id="avgTime">0.0s</b></div>
-        <div class="bigstat">Letzte Zeit<br><b id="lastTime">0.0s</b></div>
-      </div>
-
-      <div class="grid">
-        <div class="blockbar" title="Block-Fortschritt"><div class="blockfill" id="blockFill"></div></div>
-        <div class="rankbar" aria-hidden="true"><div class="rankfill" id="rankfill"></div></div>
-        <div class="ranklabel"><span id="rankName">Rookie</span><span id="xpLabel">0 / 100 XP</span></div>
-      </div>
-
-      <div class="footer">
-        <div class="controls">
-          <button class="btn small" id="resetBtn">Fortschritt zurücksetzen</button>
-          <button class="btn small" id="prestigeBtn" title="Nach Legend Neustart mit Prestige">Prestige</button>
-          <button class="btn small warn" id="celebrateBtn">🥳 Rang-Party</button>
+    <div class="stage">
+      <!-- Coach Banner -->
+      <div class="card">
+        <div class="coach">
+          <div class="coach-ava" aria-hidden="true">
+            <!-- kleiner Comic Kopf -->
+            <svg width="34" height="34" viewBox="0 0 24 24" fill="none">
+              <circle cx="12" cy="12" r="10" fill="#022c3a"/>
+              <circle cx="9" cy="10" r="1.4" fill="#22d3ee"/>
+              <circle cx="15" cy="10" r="1.4" fill="#22d3ee"/>
+              <path d="M8 15c1.5 1 3 1.5 4 1.5s2.5-.5 4-1.5" stroke="#22d3ee" stroke-width="1.6" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <div class="banner">
+            <div class="h" id="coachHeadline">Let’s go! 5 saubere Aufgaben = 1 ⭐</div>
+            <div class="p" id="coachText" style="opacity:.9">Konzentriert arbeiten: Lies die Aufgabe, rechne im Kopf, antworte – dann erst klicken.</div>
+          </div>
+        </div>
+        <div class="footer" style="margin-top:10px">
+          <div class="row">
+            <select id="profileSelect" class="select"></select>
+            <input id="profileName" class="input" placeholder="Neues Profil (Name)" />
+            <button id="btnAddProfile" class="btn">+ Profil</button>
+            <button id="btnDelProfile" class="btn warn">Profil löschen</button>
+          </div>
+          <div class="badge" title="Prestige zählt Durchläufe">
+            ◈ Prestige: <span id="hudPrestige">0</span>
+          </div>
         </div>
       </div>
-    </section>
 
-    <aside class="grid" role="region" aria-label="Einstellungen">
-      <h3 style="margin:0">Einstellungen</h3>
-      <div class="controls">
-        <label class="chip"><input type="checkbox" id="op_add" checked> Plus</label>
-        <label class="chip"><input type="checkbox" id="op_sub" checked> Minus</label>
-        <label class="chip"><input type="checkbox" id="op_mul" checked> Mal</label>
-        <label class="chip"><input type="checkbox" id="op_div" checked> Geteilt (ganzzahlig)</label>
-      </div>
-
-      <div class="controls">
-        <span class="chip">Modus:
-          <select id="mode" style="background:#0b1225;color:var(--text);border:2px solid #334155;border-radius:10px;padding:6px">
-            <option value="adaptive" selected>Adaptiv (empfohlen)</option>
-            <option value="fixed">Fixe Schwierigkeit</option>
-          </select>
-        </span>
-        <span class="chip">Level:
-          <input id="level" type="range" min="1" max="10" value="3" />
-          <span id="levelLabel">3</span>
-        </span>
-      </div>
-
-      <div class="panel" style="border-style:dashed">
-        <div style="font-weight:900; margin-bottom:6px">Block-Training</div>
-        <div class="controls">
-          <span class="chip">Aufgaben:
-            <select id="blockSize" style="background:#0b1225;color:var(--text);border:2px solid #334155;border-radius:10px;padding:6px">
-              <option>10</option><option>12</option><option selected>15</option>
-            </select>
-          </span>
-          <button class="btn primary" id="startBlockBtn">Block starten</button>
+      <!-- Aufgabe -->
+      <div class="card q-card">
+        <div class="row controls" style="justify-content:space-between">
+          <div class="group">
+            <button id="btnStart" class="btn primary">▶️ Block starten</button>
+            <button id="btnSkip" class="btn">⏭️ Überspringen</button>
+          </div>
+          <div class="group">
+            <span class="badge">Zeit <span id="hudTime">0.0s</span></span>
+            <span class="badge">Block <span id="hudBlock">0/10</span></span>
+          </div>
         </div>
-        <div style="font-size:13px; color:#9fb0d0">Teilen am Blockende möglich (opt-in).</div>
-      </div>
 
-      <div class="panel" style="border-style:dashed">
-        <div style="font-weight:900; margin-bottom:6px">Belohnungen & Ränge</div>
-        <ul style="margin:0 0 6px 18px; padding:0">
-          <li>✅ Richtig: <b>10 XP</b> + Zeit-Bonus</li>
-          <li>🔥 Streak-Bonus: +<b>1 XP</b> je richtiger Serie</li>
-          <li>⚡ Schnell (≤3s): +<b>5 XP</b>, (≤6s): +<b>2 XP</b></li>
-          <li>🎯 Block-Bonus: bis zu <b>+50 XP</b> (Genauigkeit & Ø Zeit)</li>
-          <li>◈ Prestige: Nach „Legend“ Neustart bei ⟲(n+1)</li>
-        </ul>
-      </div>
-
-      <div class="panel" style="border-style:dashed">
-        <div style="font-weight:900; margin-bottom:6px">Rangfolge</div>
-        <ol style="margin:0 0 6px 18px; padding:0; line-height:1.4">
-          <li>Rookie (0–99)</li><li>Apprentice (100–249)</li><li>Challenger (250–499)</li>
-          <li>Scholar (500–899)</li><li>Master (900–1499)</li><li>Grandmaster (1500–2399)</li><li>Legend (2400+)</li>
-        </ol>
-      </div>
-    </aside>
-  </div>
-
-  <!-- Nickname & Gruppe -->
-  <div class="modal" id="settingsModal" aria-hidden="true">
-    <div class="box">
-      <h2 style="margin:0 0 8px">Online-Teilen & Gruppe</h2>
-      <div class="grid" style="grid-template-columns:1fr; gap:10px">
-        <div class="controls">
-          <span class="chip">Nickname:
-            <input id="nickInput" placeholder="z. B. Tiger87" style="margin-left:6px;background:#0b1225;color:#fff;border:2px solid #334155;border-radius:10px;padding:6px;min-width:160px"/>
-          </span>
-          <span class="chip">Gruppe:
-            <input id="groupInput" placeholder="z. B. 3a-2025" style="margin-left:6px;background:#0b1225;color:#fff;border:2px solid #334155;border-radius:10px;padding:6px;min-width:140px"/>
-          </span>
-          <button class="btn primary" id="saveOnlineBtn">Speichern</button>
-          <button class="btn ghost" id="closeSettingsBtn">Schließen</button>
+        <div id="question" class="q">Bereit?</div>
+        <div class="answer">
+          <input id="answer" class="input" inputmode="numeric" placeholder="Antwort eingeben" style="min-width:140px;text-align:center;font-size:20px;font-weight:700" />
+          <button id="btnCheck" class="btn ok">✅ Prüfen</button>
         </div>
-        <div style="font-size:13px; color:#9fb0d0">Nur Pseudonym & Zahlen werden geteilt. Du entscheidest jedes Mal.</div>
+        <div id="feedback" class="help">Tipp: ENTER = Prüfen, STRG+→ = Überspringen</div>
+      </div>
+    </div>
+
+    <div class="footer">
+      <div>© 2025 – A-Z Forst- und Gartenservice Meyer (Privatprojekt für Johann)</div>
+      <div class="row">
+        <span class="tag">Build: <span id="buildTag">v1.6</span></span>
+        <span class="tag">PWA ready</span>
       </div>
     </div>
   </div>
 
-  <!-- Bestenliste -->
-  <div class="modal" id="leaderboardModal" aria-hidden="true">
-    <div class="box">
-      <h2 style="margin:0 0 8px">Bestenliste – <span id="lbGroupLabel">3a-2025</span></h2>
-      <div class="controls">
-        <span class="chip">Kategorie:
-          <select id="lbCategory" style="background:#0b1225;color:#fff;border:2px solid #334155;border-radius:10px;padding:6px">
-            <option value="fastest">Schnellste Ø-Zeit (Block)</option>
-            <option value="tasks">Meiste Aufgaben gesamt</option>
-            <option value="xp">Höchste XP gesamt</option>
-            <option value="streak">Längste Streak gesamt</option>
-          </select>
-        </span>
-        <button class="btn" id="refreshLbBtn">Aktualisieren</button>
-        <button class="btn ghost" id="closeLbBtn">Schließen</button>
-      </div>
-      <div class="list" id="lbList">
-        <div class="row h"><div>Spieler</div><div>Wert</div><div>Prestige</div><div>Hinweis</div></div>
-        <!-- Zeilen werden per JS gefüllt -->
-      </div>
-      <div style="font-size:12px; color:#9fb0d0; margin-top:8px" id="lbHint">
-        Hinweis: Für „Schnellste Ø-Zeit“ zählen nur geteilte Blöcke mit Größe ≥ 10 & Genauigkeit ≥ 80 %.
+  <!-- Statistik Dialog -->
+  <dialog id="dlgStats">
+    <div class="dlg-head">Lernstatistik – <span id="statsProfile">–</span></div>
+    <div class="dlg-body">
+      <div class="row" style="gap:12px;flex-wrap:wrap">
+        <div class="card" style="flex:1;min-width:230px">
+          <div class="h" style="font-weight:800;margin-bottom:6px">Kennzahlen</div>
+          <table>
+            <tbody>
+              <tr><td>Aufgaben gelöst</td><td id="stSolved">0</td></tr>
+              <tr><td>Richtig (gesamt)</td><td id="stCorrect">0</td></tr>
+              <tr><td>Genauigkeit</td><td id="stAcc">–</td></tr>
+              <tr><td>Ø Zeit pro Aufgabe</td><td id="stAvg">–</td></tr>
+              <tr><td>Beste Serie</td><td id="stBestStreak">0</td></tr>
+              <tr><td>Aktueller Rang</td><td id="stRank">Recruit</td></tr>
+              <tr><td>Prestige</td><td id="stPrestige">0</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div class="card" style="flex:1.4;min-width:280px">
+          <div class="h" style="font-weight:800;margin-bottom:6px">Entwicklung (letzte 30 Antworten)</div>
+          <canvas id="sparkline" class="spark" width="600" height="40"></canvas>
+          <div class="help">Punkte: 1 = richtig, 0 = falsch • Linie: kumulative Trefferquote</div>
+        </div>
       </div>
     </div>
-  </div>
-
-  <!-- Profile modal + Stats modal (unverändert) -->
-  <div class="modal" id="profilesModal" aria-hidden="true"><div class="box"><h2 style="margin:0 0 8px">Profile verwalten</h2><div class="grid" style="grid-template-columns:1fr; gap:10px"><div class="controls">
-    <span class="chip">Name:<input id="profileName" placeholder="Name eingeben" style="margin-left:6px;background:#0b1225;color:#fff;border:2px solid #334155;border-radius:10px;padding:6px;min-width:160px"/></span>
-    <button class="btn primary" id="saveProfileBtn">Speichern / Neues Profil</button>
-    <button class="btn ghost" id="closeProfilesBtn">Schließen</button>
-  </div><div>Avatar wählen:</div><div class="avatar-grid" id="avatarGrid"></div></div></div></div>
-
-  <div class="modal" id="statsModal" aria-hidden="true"><div class="box"><h2 style="margin:0 0 8px">Lernstatistik</h2>
-    <!-- … (Dein bestehender Stats-Inhalt bleibt) … -->
-    <div class="controls" style="justify-content:flex-end">
-      <button class="btn ghost" id="exportCsvBtn">CSV exportieren</button>
-      <button class="btn primary" id="closeStatsBtn">Schließen</button>
+    <div class="dlg-foot">
+      <button id="btnResetStats" class="btn warn">Statistik zurücksetzen</button>
+      <button id="btnCloseStats" class="btn">Schließen</button>
     </div>
-  </div></div>
+  </dialog>
 
-  <div class="confetti" id="confetti" aria-hidden="true"></div>
-  <div class="result-overlay" id="resultOverlay" aria-hidden="true"><div class="thumb-wrap"><div class="thumb" id="thumbEl">👍</div><div class="msg" id="thumbMsg"></div></div></div>
-  <div class="toast" id="toast"></div>
+  <!-- Optional: Firebase Config (falls vorhanden, nicht blockierend) -->
+  <script>
+    (async function tryFirebase(){
+      try {
+        await import('./firebase-config.js');
+        // Falls benötigt: weitere Firebase-Initialisierung hier ergänzen
+        console.info('Firebase config geladen.');
+      } catch(e){
+        // Kein Problem im lokalen Modus
+      }
+    })();
+  </script>
 
-</div>
+  <script>
+    /* ===========================
+       Zustand & Utilities
+       =========================== */
+    const ui = {
+      rankName: document.getElementById('rankName'),
+      rankBadge: document.getElementById('rankBadge'),
+      hudProfile: document.getElementById('hudProfile'),
+      hudXP: document.getElementById('hudXP'),
+      hudStreak: document.getElementById('hudStreak'),
+      hudAcc: document.getElementById('hudAcc'),
+      hudTime: document.getElementById('hudTime'),
+      hudBlock: document.getElementById('hudBlock'),
+      hudPrestige: document.getElementById('hudPrestige'),
+      coachHeadline: document.getElementById('coachHeadline'),
+      coachText: document.getElementById('coachText'),
+      profileSelect: document.getElementById('profileSelect'),
+      profileName: document.getElementById('profileName'),
+      btnAddProfile: document.getElementById('btnAddProfile'),
+      btnDelProfile: document.getElementById('btnDelProfile'),
+      btnStart: document.getElementById('btnStart'),
+      btnSkip: document.getElementById('btnSkip'),
+      btnCheck: document.getElementById('btnCheck'),
+      btnStats: document.getElementById('btnStats'),
+      question: document.getElementById('question'),
+      answer: document.getElementById('answer'),
+      feedback: document.getElementById('feedback'),
+      ttsToggle: document.getElementById('ttsToggle'),
+      dlgStats: document.getElementById('dlgStats'),
+      st: {
+        profile: document.getElementById('statsProfile'),
+        solved: document.getElementById('stSolved'),
+        correct: document.getElementById('stCorrect'),
+        acc: document.getElementById('stAcc'),
+        avg: document.getElementById('stAvg'),
+        best: document.getElementById('stBestStreak'),
+        rank: document.getElementById('stRank'),
+        prestige: document.getElementById('stPrestige'),
+        spark: document.getElementById('sparkline'),
+      }
+    };
 
-<script>
-/* ===== (Spielcode: identisch zu deiner funktionierenden Version, nur ergänzt um Prestige + Teilen) ===== */
-/* … (gekürzt – ich habe nichts entfernt, nur unten Ergänzungen eingefügt) … */
+    const persist = {
+      loadAll(){ try{ return JSON.parse(localStorage.getItem('mt_profiles')||'{}'); }catch{return {}} },
+      saveAll(obj){ localStorage.setItem('mt_profiles', JSON.stringify(obj)); },
+      active(){ return localStorage.getItem('mt_active')||''; },
+      setActive(id){ localStorage.setItem('mt_active', id); },
+      build(){ return localStorage.getItem('mt_build')||'v0'; },
+      setBuild(tag){ localStorage.setItem('mt_build', tag); },
+    };
 
-const $ = sel => document.querySelector(sel);
-const opsEls = { add:$("#op_add"), sub:$("#op_sub"), mul:$("#op_mul"), div:$("#op_div") };
-const ui = { /* … wie gehabt … */ 
-  // NEU:
-  leaderboardBtn: $("#leaderboardBtn"),
-  leaderboardModal: $("#leaderboardModal"), closeLbBtn: $("#closeLbBtn"), lbList: $("#lbList"), lbCategory: $("#lbCategory"), refreshLbBtn: $("#refreshLbBtn"), lbGroupLabel: $("#lbGroupLabel"),
-  settingsModal: $("#settingsModal"), saveOnlineBtn: $("#saveOnlineBtn"), closeSettingsBtn: $("#closeSettingsBtn"), nickInput: $("#nickInput"), groupInput: $("#groupInput"),
-  prestigeBtn: $("#prestigeBtn"),
-  toast: $("#toast"), /* … */
-};
+    const state = {
+      profileId: '',
+      xp: 0,
+      streak: 0,
+      bestStreak: 0,
+      correct: 0,
+      attempts: 0,
+      prestige: 0,
+      history: [], // [{ok:bool, t:seconds}]
+      block: { total:10, index:0, started:false, t0:0 },
+      current: { a:0, b:0, op:'+', res:0 },
+      tts: false,
+    };
 
-// … (PRAISES, ENCOURAGE, RANKS, Avatare, Audio, Stimmen, Helpers, Gameplay – alles wie in deiner funktionierenden Version) …
+    function now(){ return performance.now(); }
+    function speak(text){
+      if(!state.tts) return;
+      try{
+        const clean = (text||'').replace(/[\p{Emoji_Presentation}\p{Extended_Pictographic}]/gu,''); // Emojis raus
+        const u = new SpeechSynthesisUtterance(clean);
+        u.lang = 'de-DE';
+        u.rate = 1.0;
+        u.pitch = 1.0;
+        speechSynthesis.cancel();
+        speechSynthesis.speak(u);
+      }catch{}
+    }
 
-/* ===== Lokale Online-Einstellungen (Nickname, Gruppe) ===== */
-const ONLINE_KEY = "jpt:online:v1";
-function getOnline(){ try{ return JSON.parse(localStorage.getItem(ONLINE_KEY)) || {}; }catch(_){ return {}; } }
-function setOnline(o){ localStorage.setItem(ONLINE_KEY, JSON.stringify(o||{})); }
-function openOnlineSettings(){
-  const o = getOnline();
-  ui.nickInput.value = o.nick || "";
-  ui.groupInput.value = o.groupId || "";
-  ui.settingsModal.classList.add("show");
-}
-ui.saveOnlineBtn.addEventListener("click", () => {
-  const nick = ui.nickInput.value.trim() || ("Spieler" + Math.floor(100+Math.random()*900));
-  const groupId = ui.groupInput.value.trim() || "3a-2025";
-  setOnline({nick, groupId});
-  ui.lbGroupLabel.textContent = groupId;
-  ui.settingsModal.classList.remove("show");
-  showToast("Online-Einstellungen gespeichert.");
-});
-ui.closeSettingsBtn.addEventListener("click", ()=> ui.settingsModal.classList.remove("show"));
+    /* ===========================
+       Profile
+       =========================== */
+    function defaultProfile(name){
+      return { id: crypto.randomUUID(), name, xp:0, streak:0, bestStreak:0, correct:0, attempts:0, prestige:0, history:[], tts:false };
+    }
+    function getProfiles(){ return persist.loadAll(); }
+    function saveProfiles(p){ persist.saveAll(p); }
+    function getActiveProfile(){
+      const all=getProfiles(); const id=persist.active();
+      if(id && all[id]) return all[id];
+      const names = Object.values(all);
+      return names[0]||null;
+    }
+    function setActiveProfile(id){
+      const all=getProfiles();
+      if(all[id]){ persist.setActive(id); loadProfileIntoState(all[id]); }
+    }
+    function loadProfileIntoState(p){
+      state.profileId = p.id;
+      state.xp = p.xp||0;
+      state.streak = p.streak||0;
+      state.bestStreak = p.bestStreak||0;
+      state.correct = p.correct||0;
+      state.attempts = p.attempts||0;
+      state.prestige = p.prestige||0;
+      state.history = Array.isArray(p.history)? p.history.slice(-200) : [];
+      state.tts = !!p.tts;
+      ui.ttsToggle.checked = state.tts;
+      updateHUD();
+    }
+    function saveStateToProfile(){
+      if(!state.profileId) return;
+      const all=getProfiles();
+      const p=all[state.profileId];
+      if(!p) return;
+      Object.assign(p,{
+        xp:state.xp, streak:state.streak, bestStreak:state.bestStreak,
+        correct:state.correct, attempts:state.attempts, prestige:state.prestige,
+        history:state.history, tts:state.tts
+      });
+      saveProfiles(all);
+    }
+    function refreshProfileSelect(){
+      const all=getProfiles(); const ids=Object.keys(all);
+      ui.profileSelect.innerHTML='';
+      ids.forEach(id=>{
+        const opt=document.createElement('option');
+        opt.value=id; opt.textContent=all[id].name;
+        ui.profileSelect.appendChild(opt);
+      });
+      if(state.profileId){
+        ui.profileSelect.value=state.profileId;
+      }
+      ui.hudProfile.textContent = all[state.profileId]?.name || '–';
+    }
 
-/* ===== Prestige ===== */
-function getPrestige(){ const p = currentProfile(); return (p.stats && p.stats.legendPrestige) ? p.stats.legendPrestige : 0; }
-function setPrestige(n){ const p = currentProfile(); p.stats.legendPrestige = n; saveProfiles(); }
-ui.prestigeBtn.addEventListener("click", () => {
-  const rank = getRank(state.xp);
-  if(rank.name!=="Legend"){ showToast("Prestige verfügbar, sobald du Legend bist."); return; }
-  if(confirm("Prestige aktivieren? Dein XP-Zähler startet neu. (Du behältst Aufgaben/Streak-Statistiken)")){
-    const n = getPrestige()+1; setPrestige(n);
-    state.xp = 0; state.streak = 0; persist(); updateHUD(); newQuestion(true);
-    showToast("Prestige aktiviert: ◈"+n);
-  }
-});
+    /* ===========================
+       Rang & Prestige
+       =========================== */
+    function getRank(xp){
+      const tiers = [
+        {name:'Recruit', req:0},
+        {name:'Apprentice', req:50},
+        {name:'Adept', req:120},
+        {name:'Expert', req:240},
+        {name:'Master', req:420},
+        {name:'Legend', req:680},
+      ];
+      let r=tiers[0];
+      for(const t of tiers){ if(xp>=t.req) r=t; else break; }
+      return r;
+    }
+    function getPrestige(){ return state.prestige||0; }
 
-/* HUD-Override für Prestige-Badge */
-const baseGetRank = getRank;
-function getRank(xp){ return baseGetRank(xp); } // (nur Alias)
-function renderRankBadge(){
-  const rank = getRank(state.xp);
-  const prest = getPrestige();
-  let label = rank.name;
-  if(rank.name==="Legend" && prest>0) label = `Legend ◈${prest}`;
-  else if(rank.name!=="Legend" && prest>0) label = `${rank.name} ⟲${prest+1}`;
-  ui.rankName.textContent = label;
-  ui.rankBadge.textContent = "Rang: " + label;
-}
-const _updateHUD = updateHUD;
-updateHUD = function(){
-  _updateHUD();
-  renderRankBadge();
-};
+    /* ===========================
+       Aufgaben & Logik
+       =========================== */
+    function rand(min,max){ return Math.floor(Math.random()*(max-min+1))+min; }
+    function nextTask(){
+      const ops=['+','-','×','÷'];
+      const op = ops[rand(0,ops.length-1)];
+      let a=rand(2,12), b=rand(2,12), res=0;
+      if(op==='+'){ res=a+b; }
+      else if(op==='-'){ if(b>a)[a,b]=[b,a]; res=a-b; }
+      else if(op==='×'){ res=a*b; }
+      else { // Division: ganzzahlig
+        res=rand(2,12); b=rand(2,12); a=res*b;
+        op='÷';
+      }
+      state.current={a,b,op,res};
+      ui.question.textContent = `${a} ${op} ${b} = ?`;
+      ui.answer.value='';
+      ui.answer.focus();
+      speak(ui.question.textContent);
+      state.block.t0 = now();
+    }
 
-/* ===== Teilen am Block-Ende ===== */
-async function maybeShareBlockSummary(summary){
-  try{
-    if(!window.firebaseApi){ openOnlineSettings(); return; }
-    const online = getOnline();
-    if(!online.nick || !online.groupId){ openOnlineSettings(); return; }
-    await window.firebaseApi.ensureAuth();
-    await window.firebaseApi.shareBlock({
-      groupId: online.groupId,
-      nickname: online.nick,
-      totals: {
-        totalTasks: state.total||0,
-        totalBlocks: (currentProfile().stats.totalBlocks||0), // wir erhöhen gleich
-        totalXP: state.xp||0,
-        bestStreak: state.bestStreak||0,
-        legendPrestige: getPrestige()||0
-      },
-      lastBlock: summary
-    });
-    showToast("Block in Bestenliste geteilt.");
-  }catch(e){
-    console.error(e);
-    showToast("Teilen fehlgeschlagen.");
-  }
-}
+    function startBlock(){
+      state.block.index=0;
+      state.block.started=true;
+      ui.hudBlock.textContent = `0/${state.block.total}`;
+      ui.hudTime.textContent = `0.0s`;
+      ui.feedback.textContent = 'Viel Erfolg! 10 Aufgaben in Folge.';
+      nextTask();
+      updateHUD();
+    }
 
-/* Hook ans Block-Ende anhängen (bestehende Funktion erweitern) */
-const _endBlock = endBlock;
-endBlock = function(){
-  const acc = block.total ? Math.round((block.correct/block.total)*100) : 0;
-  const avg = block.times.length ? (block.times.reduce((a,b)=>a+b,0)/block.times.length) : 0;
-  // bestehende Logik ausführen
-  _endBlock();
+    function checkAnswer(){
+      if(!state.block.started) return;
+      const val = Number(ui.answer.value.trim());
+      const took = (now() - state.block.t0)/1000;
+      const ok = Number.isFinite(val) && (val === state.current.res);
+      state.attempts++;
+      if(ok){
+        state.correct++;
+        state.streak++;
+        state.bestStreak = Math.max(state.bestStreak, state.streak);
+        state.xp += 5;
+        ui.feedback.textContent = `✅ Richtig! +5 XP • ${took.toFixed(1)}s`;
+        speak('Richtig!');
+      }else{
+        state.streak=0;
+        ui.feedback.textContent = `❌ Leider nein. Richtig wäre ${state.current.res}.`;
+        speak('Leider falsch.');
+      }
+      state.history.push({ok, t: took});
+      state.history = state.history.slice(-300);
 
-  // totals: lokalen Blockzähler erhöhen
-  const p = currentProfile(); p.stats.totalBlocks = (p.stats.totalBlocks||0)+1; saveProfiles();
+      state.block.index++;
+      ui.hudBlock.textContent = `${Math.min(state.block.index, state.block.total)}/${state.block.total}`;
+      ui.hudTime.textContent = `${took.toFixed(1)}s`;
+      updateHUD();
+      saveStateToProfile();
 
-  // Opt-in fragen
-  setTimeout(async () => {
-    if(confirm("Möchtest du diesen Block in der Bestenliste teilen?")){
-      await maybeShareBlockSummary({
-        size: block.size, accuracy: acc, avgTime: +avg.toFixed(3), timestamp: Date.now()
+      if(state.block.index>=state.block.total){
+        // Block Ende
+        const allOk = state.history.slice(-state.block.total).every(h=>h.ok);
+        if(allOk){
+          state.xp += 20;
+          ui.coachHeadline.textContent = 'Stark! Block fehlerfrei abgeschlossen. +20 XP';
+          ui.coachText.textContent = 'Willst du Prestige? Bei Legend kannst du „prestigen“ und neu starten – für ◈.';
+          // Prestige Vorschlag
+          maybeOfferPrestige();
+        }else{
+          ui.coachHeadline.textContent = 'Geschafft! Nächster Block?';
+          ui.coachText.textContent = 'Tipp: Konstanz schlägt Tempo. Erst korrekt, dann schneller werden.';
+        }
+        state.block.started=false;
+        saveStateToProfile();
+        updateHUD();
+      }else{
+        nextTask();
+      }
+    }
+
+    function skipTask(){
+      if(!state.block.started) return;
+      state.streak=0;
+      const took = (now()-state.block.t0)/1000;
+      state.attempts++;
+      state.history.push({ok:false,t:took});
+      state.block.index++;
+      ui.feedback.textContent = '⏭️ Übersprungen.';
+      ui.hudBlock.textContent = `${state.block.index}/${state.block.total}`;
+      updateHUD();
+      saveStateToProfile();
+      if(state.block.index>=state.block.total){
+        state.block.started=false;
+        ui.coachHeadline.textContent='Block beendet (mit Überspringen).';
+        ui.coachText.textContent='Kein Problem. Nächster Block wieder voll fokussiert.';
+        updateHUD();
+      }else{
+        nextTask();
+      }
+    }
+
+    function maybeOfferPrestige(){
+      const r=getRank(state.xp);
+      if(r.name!=='Legend') return;
+      // einfache Prompt-Confirm
+      setTimeout(()=>{
+        if(confirm('Legend erreicht! Prestige aktivieren?\nDu bekommst ◈ +1, XP werden zurückgesetzt.')){
+          state.prestige = (state.prestige||0)+1;
+          state.xp = 0;
+          state.streak = 0;
+          saveStateToProfile();
+          ui.coachHeadline.textContent='Prestige aktiviert!';
+          ui.coachText.textContent='XP auf 0. Bonus ◈ erhalten. Weiter geht’s – noch sauberer rechnen.';
+          updateHUD();
+        }
+      }, 150);
+    }
+
+    /* ===========================
+       HUD Rendering
+       =========================== */
+    function updateHUD(){
+      const acc = state.attempts>0 ? Math.round((state.correct/state.attempts)*100) : null;
+      ui.hudXP.textContent = state.xp;
+      ui.hudStreak.textContent = state.streak;
+      ui.hudAcc.textContent = (acc==null? '–' : acc+'%');
+      ui.hudPrestige.textContent = state.prestige||0;
+
+      // Motivations-Text dynamisch
+      if(state.streak>=5){
+        ui.coachHeadline.textContent='🔥 Lauf! Serie ≥ 5';
+        ui.coachText.textContent='Behalte das Tempo, aber bleib sauber. Qualität vor Speed.';
+      } else if(acc!==null && acc>=90){
+        ui.coachHeadline.textContent='Präzise! Genauigkeit ≥ 90%';
+        ui.coachText.textContent='Jetzt schrittweise schneller werden – Ziel Ø < 5s.';
+      }
+    }
+
+    /* ===== Prestige-Badge Rendering (sicher) ===== */
+    function renderRankBadge(){
+      const rank = getRank(state.xp);
+      const prest = getPrestige ? getPrestige() : 0;
+      let label = rank.name;
+      if(rank.name==="Legend" && prest>0) label = `Legend ◈${prest}`;
+      else if(rank.name!=="Legend" && prest>0) label = `${rank.name} ⟲${prest+1}`;
+      if (ui?.rankName) ui.rankName.textContent = label;
+      if (ui?.rankBadge) ui.rankBadge.textContent = "Rang: " + label;
+    }
+
+    /* Hook updateHUD erst, wenn es existiert (safe hooking) */
+    (function hookUpdateHud(){
+      function tryHook(){
+        if (typeof window.updateHUD === "function" && !window.updateHUD.__prestigeHooked) {
+          const orig = window.updateHUD;
+          window.updateHUD = function(){
+            orig.apply(this, arguments);
+            renderRankBadge();
+          };
+          window.updateHUD.__prestigeHooked = true;
+          renderRankBadge();
+        }
+      }
+      tryHook();
+      window.addEventListener('load', tryHook);
+    })();
+
+    /* ===========================
+       Statistik
+       =========================== */
+    function openStats(){
+      const p = getActiveProfile();
+      if(!p){ alert('Kein Profil. Bitte erst eines anlegen.'); return; }
+      ui.st.profile.textContent = p.name;
+      const solved = p.attempts||0;
+      const correct = p.correct||0;
+      const acc = solved? Math.round((correct/solved)*100):0;
+      const avg = (p.history && p.history.length)? (p.history.reduce((s,h)=>s+h.t,0)/p.history.length):0;
+      ui.st.solved.textContent = solved;
+      ui.st.correct.textContent = correct;
+      ui.st.acc.textContent = solved? acc+'%' : '–';
+      ui.st.avg.textContent = solved? avg.toFixed(2)+'s':'–';
+      ui.st.best.textContent = p.bestStreak||0;
+      ui.st.rank.textContent = getRank(p.xp||0).name;
+      ui.st.prestige.textContent = p.prestige||0;
+      drawSpark(p.history||[]);
+      ui.dlgStats.showModal();
+    }
+    function closeStats(){ ui.dlgStats.close(); }
+    function resetStats(){
+      if(!state.profileId) return;
+      if(!confirm('Statistik wirklich zurücksetzen?')) return;
+      state.xp=0; state.streak=0; state.bestStreak=0; state.correct=0; state.attempts=0; state.history=[];
+      saveStateToProfile(); updateHUD(); renderRankBadge(); openStats();
+    }
+    function drawSpark(hist){
+      const c=ui.st.spark, ctx=c.getContext('2d');
+      ctx.clearRect(0,0,c.width,c.height);
+      const n=Math.min(30, hist.length);
+      const slice = hist.slice(-n);
+      const w=c.width, h=c.height;
+      // Punkte (0/1)
+      for(let i=0;i<slice.length;i++){
+        const x = (i/(n-1||1))*w;
+        const y = h- (slice[i].ok? h*0.8 : h*0.2);
+        ctx.beginPath(); ctx.arc(x, y, 2.5, 0, Math.PI*2); ctx.fillStyle='#22d3ee'; ctx.fill();
+      }
+      // kumulative Trefferquote
+      let cum=0;
+      ctx.beginPath();
+      for(let i=0;i<slice.length;i++){
+        cum += slice[i].ok?1:0;
+        const rate = (cum/(i+1));
+        const x=(i/(n-1||1))*w;
+        const y=h - rate*h*0.9;
+        if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y);
+      }
+      ctx.lineWidth=2; ctx.strokeStyle='#38bdf8'; ctx.stroke();
+    }
+
+    /* ===========================
+       Init & Events
+       =========================== */
+    function bootstrap(){
+      // Build Tag bump (hilft bei PWA-Cache-Erkennung im UI)
+      const build='v1.6';
+      document.getElementById('buildTag').textContent=build;
+      persist.setBuild(build);
+
+      // Default-Profil erzeugen, falls leer
+      let all=getProfiles();
+      if(Object.keys(all).length===0){
+        const p=defaultProfile('Johann');
+        all[p.id]=p; saveProfiles(all); persist.setActive(p.id);
+      }
+      const active=getActiveProfile();
+      if(active){ loadProfileIntoState(active); }
+
+      refreshProfileSelect();
+      renderRankBadge();
+
+      // Events
+      ui.btnAddProfile.onclick = ()=>{
+        const name=(ui.profileName.value||'').trim();
+        if(!name){ alert('Bitte Name eingeben.'); return; }
+        const all=getProfiles();
+        const p=defaultProfile(name);
+        all[p.id]=p; saveProfiles(all); setActiveProfile(p.id);
+        ui.profileName.value=''; refreshProfileSelect(); updateHUD(); renderRankBadge();
+      };
+      ui.btnDelProfile.onclick = ()=>{
+        if(!state.profileId) return;
+        const all=getProfiles();
+        if(!confirm(`Profil "${all[state.profileId].name}" wirklich löschen?`)) return;
+        delete all[state.profileId];
+        saveProfiles(all);
+        const first = Object.keys(all)[0]||'';
+        if(first){ setActiveProfile(first); } else {
+          const p=defaultProfile('Profil 1'); all[p.id]=p; saveProfiles(all); setActiveProfile(p.id);
+        }
+        refreshProfileSelect(); updateHUD(); renderRankBadge();
+      };
+      ui.profileSelect.onchange = (e)=> setActiveProfile(e.target.value);
+
+      ui.btnStart.onclick = startBlock;
+      ui.btnSkip.onclick = skipTask;
+      ui.btnCheck.onclick = checkAnswer;
+      ui.answer.addEventListener('keydown', (e)=>{
+        if(e.key==='Enter') checkAnswer();
+      });
+      document.addEventListener('keydown', (e)=>{
+        if(e.ctrlKey && e.key==='ArrowRight') { e.preventDefault(); skipTask(); }
+      });
+
+      ui.ttsToggle.onchange = ()=>{
+        state.tts = ui.ttsToggle.checked;
+        saveStateToProfile();
+        if(state.tts) speak('Sprachausgabe aktiviert.');
+      };
+
+      ui.btnStats.onclick = openStats;
+      document.getElementById('btnCloseStats').onclick = closeStats;
+      document.getElementById('btnResetStats').onclick = resetStats;
+
+      // Erst-Ansicht
+      ui.question.textContent='Drücke „Block starten“, um loszulegen.';
+      ui.feedback.textContent='Ziel: 10 Aufgaben. Sauber rechnen, dann Tempo erhöhen.';
+    }
+
+    window.addEventListener('load', bootstrap);
+
+    /* ===========================
+       PWA / Service Worker
+       =========================== */
+    if('serviceWorker' in navigator){
+      window.addEventListener('load', ()=>{
+        navigator.serviceWorker.register('./service-worker.js').catch(console.warn);
       });
     }
-  }, 400);
-};
+  </script>
 
-/* ===== Bestenliste UI ===== */
-ui.leaderboardBtn.addEventListener("click", async ()=>{
-  const online = getOnline();
-  if(!online.groupId) openOnlineSettings();
-  ui.lbGroupLabel.textContent = online.groupId || "—";
-  ui.leaderboardModal.classList.add("show");
-  await loadLeaderboard();
-});
-ui.closeLbBtn.addEventListener("click", ()=> ui.leaderboardModal.classList.remove("show"));
-ui.refreshLbBtn.addEventListener("click", loadLeaderboard);
-ui.lbCategory.addEventListener("change", loadLeaderboard);
-
-async function loadLeaderboard(){
-  try{
-    if(!window.firebaseApi){ showToast("Firebase noch nicht initialisiert."); return; }
-    const online = getOnline();
-    if(!online.groupId){ showToast("Bitte Gruppe in den Einstellungen setzen."); return; }
-    const cat = ui.lbCategory.value;
-    const rows = await window.firebaseApi.getLeaderboard(online.groupId, cat);
-    ui.lbList.innerHTML = `<div class="row h"><div>Spieler</div><div>Wert</div><div>Prestige</div><div>Hinweis</div></div>` +
-      rows.map(r=>`<div class="row"><div>${escapeHtml(r.nickname||"Spieler")}</div><div>${r.value}</div><div>${r.legendPrestige?("◈"+r.legendPrestige):"—"}</div><div>${r.note||""}</div></div>`).join("");
-  }catch(e){
-    console.error(e); showToast("Bestenliste konnte nicht geladen werden.");
-  }
-}
-function escapeHtml(s){ return String(s).replace(/[&<>"']/g,m=>({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[m])); }
-
-/* ===== Init ===== */
-window.addEventListener("load", () => {
-  // … deine bestehende Init (Voices, HUD, Frage, SW) …
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('./service-worker.js').catch(()=>{});
-  }
-  // Online defaults
-  const o = getOnline();
-  if(!o.groupId) setOnline({nick: o.nick || "", groupId: "3a-2025"});
-});
-
-</script>
-
-<!-- ===== Firebase Modul: getrennt, modern (ESM) ===== -->
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-app.js";
-import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-auth.js";
-import { getFirestore, doc, setDoc, updateDoc, getDoc, collection, query, where, orderBy, limit, getDocs, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.0.1/firebase-firestore.js";
-import { firebaseConfig, DEFAULT_GROUP_ID } from "./firebase-config.js";
-
-const app = initializeApp(firebaseConfig);
-const auth = getAuth(app);
-const db = getFirestore(app);
-
-async function ensureAuth(){
-  const user = auth.currentUser;
-  if(user) return user;
-  await signInAnonymously(auth);
-  return await new Promise(resolve => onAuthStateChanged(auth, u => u && resolve(u)));
-}
-
-async function shareBlock({ groupId, nickname, totals, lastBlock }){
-  const { uid } = await ensureAuth();
-  const g = groupId || DEFAULT_GROUP_ID;
-  const ref = doc(db, "groups", g, "players", uid);
-  const snap = await getDoc(ref);
-  const payload = {
-    groupId: g,
-    nickname: nickname || ("Spieler"+uid.slice(-4)),
-    totalTasks: totals.totalTasks || 0,
-    totalBlocks: totals.totalBlocks || 0,
-    totalXP: totals.totalXP || 0,
-    bestStreak: totals.bestStreak || 0,
-    legendPrestige: totals.legendPrestige || 0,
-    lastBlock: {
-      size: lastBlock.size||0,
-      accuracy: lastBlock.accuracy||0,
-      avgTime: lastBlock.avgTime||0,
-      timestamp: serverTimestamp()
-    },
-    updatedAt: serverTimestamp(),
-    createdAt: snap.exists() ? (snap.data().createdAt || serverTimestamp()) : serverTimestamp()
-  };
-  if(!snap.exists()) await setDoc(ref, payload);
-  else await updateDoc(ref, payload);
-}
-
-async function getLeaderboard(groupId, category){
-  const g = groupId || DEFAULT_GROUP_ID;
-  const col = collection(db, "groups", g, "players");
-  let q, rows = [];
-  if(category==="fastest"){
-    // nur sinnvolle Blöcke
-    q = query(col,
-      where("lastBlock.size", ">=", 10),
-      where("lastBlock.accuracy", ">=", 80),
-      orderBy("lastBlock.size", "desc"),
-      orderBy("lastBlock.avgTime", "asc"),
-      limit(20)
-    );
-    const snap = await getDocs(q);
-    rows = snap.docs.map(d => {
-      const x = d.data();
-      return { nickname:x.nickname, value:(x.lastBlock?.avgTime?.toFixed?.(2) || "—")+" s",
-        legendPrestige:x.legendPrestige||0, note:`Größe ${x.lastBlock?.size||0}, ${x.lastBlock?.accuracy||0}%` };
-    });
-  } else if(category==="tasks"){
-    q = query(col, orderBy("totalTasks","desc"), limit(20));
-    const snap = await getDocs(q);
-    rows = snap.docs.map(d => { const x=d.data(); return { nickname:x.nickname, value:x.totalTasks||0, legendPrestige:x.legendPrestige||0, note:"Aufgaben gesamt" };});
-  } else if(category==="xp"){
-    q = query(col, orderBy("totalXP","desc"), limit(20));
-    const snap = await getDocs(q);
-    rows = snap.docs.map(d => { const x=d.data(); return { nickname:x.nickname, value:x.totalXP||0, legendPrestige:x.legendPrestige||0, note:"XP gesamt" };});
-  } else { // streak
-    q = query(col, orderBy("bestStreak","desc"), limit(20));
-    const snap = await getDocs(q);
-    rows = snap.docs.map(d => { const x=d.data(); return { nickname:x.nickname, value:x.bestStreak||0, legendPrestige:x.legendPrestige||0, note:"Beste Serie" };});
-  }
-  return rows;
-}
-
-// API ins Window hängen, damit das Nicht-ESM-Script sie nutzen kann.
-window.firebaseApi = { ensureAuth, shareBlock, getLeaderboard };
-</script>
-
+  <!-- Fallback: No-JS Hinweis -->
+  <noscript>
+    <div style="padding:12px;margin:12px;border:2px solid #ef4444;border-radius:10px;background:#1f2937;color:#fff">
+      Diese App benötigt JavaScript.
+    </div>
+  </noscript>
 </body>
 </html>
-
