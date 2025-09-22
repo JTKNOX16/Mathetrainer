@@ -216,12 +216,13 @@
   <div class="panel grid cols" role="region" aria-label="Spielbereich">
     <section class="grid" aria-live="polite">
       <div class="question" id="question">Bereit?</div>
-      <div class="answerrow">
-        <input id="answer" type="number" inputmode="numeric" aria-label="Antwort eingeben" />
-        <button class="btn primary" id="submitBtn">Antwort prüfen ⏎</button>
-        <button class="btn ghost" id="skipBtn" title="Neue Aufgabe (ohne Wertung)">Überspringen</button>
-        <button class="btn warn tipbtn" id="tipBtn">💡 Tipp anzeigen</button>
-      </div>
+    <form class="answerrow" id="answerForm" onsubmit="return false;">
+  <input id="answer" type="number" inputmode="numeric" step="1" pattern="[0-9]*" aria-label="Antwort eingeben" />
+  <button class="btn primary" id="submitBtn" type="submit">Antwort prüfen ⏎</button>
+  <button class="btn ghost" id="skipBtn" type="button" title="Neue Aufgabe (ohne Wertung)">Überspringen</button>
+  <button class="btn warn tipbtn" id="tipBtn" type="button">💡 Tipp anzeigen</button>
+</form>
+
 
       <div class="coach" id="coachBox" style="display:none">
         <div class="coach-avatar" aria-hidden="true" id="kenjiAvatar"></div>
@@ -609,7 +610,27 @@ let block = { active:false, size:15, index:0, correct:0, total:0, times:[], xpEa
 /* ================== Events ================== */
 ui.submit.addEventListener("click", check);
 ui.skip.addEventListener("click", () => { feedbackNeutral("Aufgabe übersprungen."); newQuestion(true); });
-ui.ans.addEventListener("keydown", e => { if(e.key==="Enter"){ check(); } if(e.key===" "){ e.preventDefault(); ui.skip.click(); } });
+  // Form-Submit abfangen → Enter and Klick auf "Prüfen" führen immer zu check()
+const answerForm = document.querySelector("#answerForm");
+if (answerForm) {
+  answerForm.addEventListener("submit", (e) => {
+    e.preventDefault();
+    check();
+  });
+}
+
+ui.ans.addEventListener("keydown", (e) => {
+  if (e.key === "Enter" || e.key === "NumpadEnter") {
+    // Formular-submit übernimmt jetzt das Prüfen
+    e.preventDefault();
+    return;
+  }
+  if (e.key === " ") {
+    e.preventDefault();
+    ui.skip.click();
+  }
+});
+
 ui.reset.addEventListener("click", resetProgress);
 ui.celebrate.addEventListener("click", celebrate);
 ui.mode.addEventListener("change", () => { state.mode = ui.mode.value; persist(); });
@@ -1158,3 +1179,4 @@ function resetProgress(){
 
 </body>
 </html>
+
