@@ -1,0 +1,10 @@
+{
+  "name": "Johann’s Personal Mathe Trainer",
+  "short_name": "Mathe Trainer",
+  "start_url": ".",
+  "scope": ".",
+  "display": "standalone",
+  "theme_color": "#7c3aed",
+  "background_color": "#0b1228",
+  "description": "Kopfrechnen-Training mit Rängen, Streaks und Tipps."
+}

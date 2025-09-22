@@ -1,0 +1,862 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>Johann’s Personal Mathe Trainer</title>
+  <meta name="theme-color" content="#7c3aed">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <link rel="manifest" href="manifest.webmanifest">
+  <style>
+    :root{ --bg1:#0ea5e9; --bg2:#7c3aed; --bg3:#14b8a6; --panel:#0b1228; --muted:#9fb0d0; --text:#ffffff; --ok:#22c55e; --warn:#f59e0b; --bad:#ef4444; --info:#60a5fa; }
+    html,body{height:100%}
+    body{
+      margin:0;
+      padding-top: calc(10px + env(safe-area-inset-top));
+      padding-left: env(safe-area-inset-left);
+      padding-right: env(safe-area-inset-right);
+      padding-bottom: env(safe-area-inset-bottom);
+      background:
+        radial-gradient(1100px 700px at 20% -10%, rgba(255,255,255,.12) 0, transparent 60%),
+        radial-gradient(900px 600px at 120% 10%, rgba(255,255,255,.08) 0, transparent 60%),
+        linear-gradient(135deg, var(--bg1), var(--bg2) 60%, var(--bg3));
+      color:var(--text);
+      font:16px/1.55 ui-rounded, system-ui, -apple-system, "SF Pro Rounded", "Segoe UI", Roboto, Helvetica, Arial, "Apple Color Emoji","Segoe UI Emoji";
+      display:flex; align-items:flex-start; justify-content:center;
+    }
+    .app{ width:min(1120px, 98vw); }
+    .comic-title{ display:flex; align-items:center; justify-content:center; margin:8px 0 10px; text-align:center; padding:6px 8px; }
+    .comic-title h1{ margin:0; font-weight:1000; letter-spacing:.5px; font-size: clamp(24px, 6vw, 44px); color:#fff; text-shadow: 2px 2px 0 #ef4444, -2px 2px 0 #22c55e, 2px -2px 0 #60a5fa, -2px -2px 0 #f59e0b, 0 0 10px rgba(0,0,0,.35); }
+    header{ display:flex; gap:14px; align-items:center; justify-content:space-between; margin:6px 0 10px; flex-wrap:wrap; }
+    .title{display:flex; gap:12px; align-items:center}
+    .logo{ width:56px;height:56px;border-radius:16px; background: conic-gradient(from 0deg, #f97316, #f59e0b, #22c55e, #14b8a6, #60a5fa, #a78bfa, #f472b6, #f97316); position:relative; display:grid; place-items:center; box-shadow:0 10px 30px rgba(0,0,0,.25); }
+    .logo svg{ filter: drop-shadow(0 3px 6px rgba(0,0,0,.25)); }
+    .brand h2{font-weight:900; font-size:clamp(16px,3.2vw,24px); margin:0}
+    .brand p{color:#f3f4f6; opacity:.9; margin:.5px 0 0; font-size:13px}
+    .panel{ background:linear-gradient(180deg, rgba(3,7,30,.82), rgba(10,15,45,.9)); border:2px solid rgba(255,255,255,.08); border-radius:18px; padding:16px; box-shadow:0 14px 36px rgba(0,0,0,.35); backdrop-filter: blur(6px); }
+    .grid{display:grid; gap:16px}
+    .cols{grid-template-columns: 1.25fr .75fr}
+    @media (max-width:900px){ .cols{grid-template-columns: 1fr} }
+    .rankbar{height:14px; background:#0e1634; border:1px solid #29336b; border-radius:999px; overflow:hidden}
+    .rankfill{height:100%; width:0%; background:linear-gradient(90deg, #34d399, #f59e0b, #60a5fa); transition:width .35s ease}
+    .ranklabel{display:flex; justify-content:space-between; font-size:13px; color:#c7d2fe; margin:6px 4px 0}
+    .controls{display:flex; flex-wrap:wrap; gap:10px; align-items:center}
+    .chip{border:2px solid #2b376e; background:#0c1540; color:var(--text); padding:8px 10px; border-radius:12px; user-select:none; display:flex; align-items:center}
+    .chip input,.chip select{margin-left:6px; accent-color:#f59e0b}
+    .btn{ border:2px solid #2b376e; background:linear-gradient(180deg,#1d2a6b,#141c4a); color:var(--text); padding:10px 14px; border-radius:14px; font-weight:800; letter-spacing:.2px; transition:transform .05s ease, filter .2s ease; user-select:none; }
+    .btn:hover{ filter:brightness(1.06) } .btn:active{ transform:translateY(1px) }
+    .btn.primary{ border-color:#1b7a3d; background:linear-gradient(180deg,#13a66a,#0d7b4c) }
+    .btn.warn{ border-color:#7a5a1b; background:linear-gradient(180deg,#d97706,#b45309) }
+    .btn.ghost{ background:linear-gradient(180deg,#101847,#0c1333); border-color:#39438a }
+    .btn.small{ padding:6px 10px; font-weight:700; font-size:14px }
+    .question{ font-size: clamp(30px, 5.2vw, 50px); font-weight:900; letter-spacing:1px; text-align:center; padding:18px 12px; border-radius:16px; background:linear-gradient(160deg,#0f1a53,#0c1540); border:2px solid #2a3369; }
+    .answerrow{display:flex; gap:10px; justify-content:center; align-items:center; margin-top:12px; flex-wrap:wrap}
+    input[type="number"]{ width:170px; font-size:30px; padding:12px 12px; border-radius:12px; border:2px solid #334155; background:#0b1228; color:var(--text); outline:none; text-align:center; font-weight:900; }
+    .meta{display:flex; gap:12px; flex-wrap:wrap; justify-content:center; color:#dbeafe; font-size:14px}
+    .bigstat{display:grid; place-items:center; padding:14px; border-radius:12px; border:2px dashed #3b436f; background:#0d1848}
+    .bigstat b{ font-size:22px }
+    .correct{color:var(--ok)} .wrong{color:#fb7185} .neutral{color:#d1d5db}
+    .footer{display:flex; gap:12px; justify-content:space-between; align-items:center; margin-top:8px; flex-wrap:wrap}
+    .hint{color:#c7d2fe; font-size:13px}
+    .kbd{padding:2px 6px; border:1px solid #334155; border-radius:6px; background:#0b1225; font-size:12px; color:#e5e7eb}
+    .badge{ padding:8px 12px; border-radius:999px; border:2px solid #3a3f86; background:linear-gradient(180deg,#0f1a53,#0b133b); font-weight:900; }
+    .confetti{position:fixed; inset:0; pointer-events:none; overflow:hidden; z-index:30}
+    .confetti i{position:absolute; width:6px; height:10px; background:currentColor; opacity:.9; transform:translateY(-20px); animation: fall 1000ms linear forwards}
+    @keyframes fall{ to{ transform:translateY(100vh) rotate(220deg); opacity:.1 } }
+    .coach{ display:flex; align-items:flex-end; gap:12px; }
+    .coach-avatar{ width:110px; height:110px; border-radius:22px; display:grid; place-items:center; background: radial-gradient(circle at 30% 20%, #fef08a, #f59e0b 60%, #b45309); border:3px solid rgba(0,0,0,.25); box-shadow:0 10px 24px rgba(0,0,0,.35); }
+    .bubble{ max-width: 600px; background:#0b133b; border:2px solid #39438a; padding:12px 14px; border-radius:12px; position:relative; font-size:16px; }
+    .bubble:after{ content:""; position:absolute; left:-10px; bottom:14px; width:0; height:0; border-top:10px solid transparent; border-bottom:10px solid transparent; border-right:12px solid #39438a; }
+    .tipbtn{ display:none; } .tipbtn.show{ display:inline-flex; animation:pulse 1.2s infinite; }
+    @keyframes pulse { 0%{transform:scale(1)} 50%{transform:scale(1.06)} 100%{transform:scale(1)} }
+    .motivation{ display:none; align-items:center; gap:12px; padding:10px 12px; border-radius:14px; border:2px solid #39438a; background:linear-gradient(180deg,#0f1a53,#0b133b); box-shadow:0 10px 24px rgba(0,0,0,.35); animation: pop 200ms ease; margin-bottom:12px; }
+    .motivation.show{ display:flex; }
+    @keyframes pop{ from{ transform:scale(.98); opacity:0 } to{ transform:scale(1); opacity:1 } }
+    .mot-avatar{ width:92px; height:92px; border-radius:18px; display:grid; place-items:center; background:#0b1228; border:2px solid #3a3f86 }
+    .mot-text{ font-size: clamp(18px,3.4vw,28px); font-weight:1000; letter-spacing:.2px; }
+    .result-overlay{ position:fixed; inset:0; display:none; place-items:center; pointer-events:none; z-index:25 }
+    .result-overlay.show{ display:grid; animation: fadeOut 1200ms 1000ms forwards; }
+    @keyframes fadeOut{ to{ opacity:0; transform:scale(.98) } }
+    .thumb{ display:grid; place-items:center; width:220px; height:220px; border-radius:50%; box-shadow:0 20px 60px rgba(0,0,0,.4); border:6px solid rgba(255,255,255,.25); font-size:140px; line-height:1; }
+    .thumb.good{ background: radial-gradient(circle, #16a34a, #15803d); }
+    .thumb.bad{ background: radial-gradient(circle, #ef4444, #b91c1c); }
+    .thumb-wrap{ display:grid; place-items:center; gap:10px }
+    .thumb-wrap .msg{ font-size:clamp(22px, 3.2vw, 34px); font-weight:900; text-align:center; text-shadow:0 2px 10px rgba(0,0,0,.35) }
+    .toast{ position: fixed; left: 50%; transform: translateX(-50%); top: 16px; background: #0b133b; border:2px solid #39438a; padding:10px 14px; border-radius:12px; font-weight:800; letter-spacing:.2px; display:none; z-index:28 }
+    .toast.show{ display:block; animation: slideDown 200ms ease, fadeOut 2000ms 1800ms forwards; }
+    .blockbar{height:12px; background:#101847; border:2px solid #2b376e; border-radius:999px; overflow:hidden}
+    .blockfill{height:100%; width:0%; background:linear-gradient(90deg,var(--info),var(--ok)); transition:width .25s ease}
+    .modal{ position:fixed; inset:0; display:none; place-items:center; background:rgba(0,0,0,.45); z-index:40 }
+    .modal .box{ background:#0b133b; border:2px solid #39438a; border-radius:16px; padding:18px; width:min(820px, 96vw); }
+    .modal.show{ display:grid; }
+    .avatar-grid{ display:grid; grid-template-columns: repeat(5, minmax(0,1fr)); gap:10px }
+    .avatar{ border:2px solid #39438a; border-radius:14px; background:#0f1a53; display:grid; place-items:center; padding:8px; cursor:pointer; }
+    .avatar.selected{ outline:3px solid var(--ok); }
+    @media (max-width:520px){ .avatar-grid{ grid-template-columns: repeat(3, minmax(0,1fr)); } }
+    .stats-grid{ display:grid; gap:12px; grid-template-columns: 1fr; }
+    .stats-cards{ display:grid; gap:10px; grid-template-columns: repeat(3, 1fr); }
+    .card{ background:#0b133b; border:2px solid #39438a; border-radius:12px; padding:12px; text-align:center }
+    .card b{ font-size:22px }
+    @media (max-width:760px){ .stats-cards{ grid-template-columns: 1fr 1fr; } }
+    @media (max-width:520px){ .stats-cards{ grid-template-columns: 1fr; } }
+    canvas{ width:100%; height:240px; background:#0a1232; border:2px solid #2b376e; border-radius:12px }
+  </style>
+</head>
+<body>
+<div class="app">
+
+  <div class="comic-title"><h1>Kopfrechnen ist doch easy!</h1></div>
+
+  <header>
+    <div class="title">
+      <div class="logo" aria-hidden="true" title="JPT">
+        <svg width="40" height="40" viewBox="0 0 64 64" aria-hidden="true">
+          <path d="M8 46 L56 46 L52 24 L40 34 L32 18 L22 34 L12 24 Z" fill="#fde047" stroke="#a16207" stroke-width="3" />
+          <circle cx="12" cy="24" r="3" fill="#f472b6"></circle>
+          <circle cx="32" cy="18" r="3" fill="#60a5fa"></circle>
+          <circle cx="52" cy="24" r="3" fill="#34d399"></circle>
+          <text x="32" y="58" text-anchor="middle" font-family="ui-rounded, system-ui" font-weight="900" font-size="18" fill="#fff">JPT</text>
+        </svg>
+      </div>
+      <div class="brand">
+        <h2>Johann’s Personal Mathe Trainer</h2>
+        <p>Plus • Minus • Mal • Geteilt – mit Rangaufstieg & Tipps von <b>Kenji</b></p>
+      </div>
+    </div>
+
+    <div class="controls">
+      <span class="chip">Profil:
+        <select id="profileSelect" style="background:#0b1225;color:#fff;border:2px solid #334155;border-radius:10px;padding:6px;min-width:160px"></select>
+      </span>
+      <button class="btn small" id="manageProfilesBtn">Profile…</button>
+      <button class="btn small" id="statsBtn">Statistik…</button>
+      <label class="chip" title="Ton an/aus"><input type="checkbox" id="muteToggle"> Ton aus</label>
+      <label class="chip" title="Sprachausgabe"><input type="checkbox" id="speechToggle"> Sprachausgabe</label>
+      <div id="rankBadge" class="badge">Rang: Rookie</div>
+    </div>
+  </header>
+
+  <div class="panel motivation" id="motivation">
+    <div class="mot-avatar" id="motAvatar"></div>
+    <div class="mot-text" id="motText">Los geht’s!</div>
+  </div>
+
+  <div class="panel grid cols" role="region" aria-label="Spielbereich">
+    <section class="grid" aria-live="polite">
+      <div class="question" id="question">3 + 4 = ?</div>
+      <div class="answerrow">
+        <input id="answer" type="number" inputmode="numeric" enterkeyhint="done" autocomplete="off" autocorrect="off" aria-label="Antwort eingeben" />
+        <button class="btn primary" id="submitBtn">Antwort prüfen ⏎</button>
+        <button class="btn ghost" id="skipBtn" title="Neue Aufgabe (ohne Wertung)">Überspringen</button>
+        <button class="btn warn tipbtn" id="tipBtn">💡 Tipp anzeigen</button>
+      </div>
+
+      <div class="coach" id="coachBox" style="display:none">
+        <div class="coach-avatar" aria-hidden="true" id="kenjiAvatar"></div>
+        <div class="bubble" id="tipBubble">💡 <b>Kenji:</b> Ich habe einen Tipp – probier mal das Zerlegen in Zehner!</div>
+      </div>
+
+      <div class="meta" id="feedback"><span class="neutral">Viel Erfolg! 🧠</span></div>
+
+      <div class="grid cols">
+        <div class="bigstat">Genauigkeit<br><b id="acc">100%</b></div>
+        <div class="bigstat">Serie (Streak)<br><b id="streak">0</b></div>
+      </div>
+
+      <div class="grid" id="timingStats">
+        <div class="bigstat">Ø Zeit<br><b id="avgTime">0.0s</b></div>
+        <div class="bigstat">Letzte Zeit<br><b id="lastTime">0.0s</b></div>
+      </div>
+
+      <div class="grid">
+        <div class="blockbar" title="Block-Fortschritt"><div class="blockfill" id="blockFill"></div></div>
+        <div class="rankbar" aria-hidden="true"><div class="rankfill" id="rankfill"></div></div>
+        <div class="ranklabel"><span id="rankName">Rookie</span><span id="xpLabel">0 / 100 XP</span></div>
+      </div>
+
+      <div class="footer">
+        <div class="hint">Tipp: <span class="kbd">Enter</span> = prüfen, <span class="kbd">Space</span> = überspringen</div>
+        <div class="controls">
+          <button class="btn small" id="resetBtn">Fortschritt zurücksetzen</button>
+          <button class="btn small warn" id="celebrateBtn">🥳 Rang-Party</button>
+        </div>
+      </div>
+    </section>
+
+    <aside class="grid" role="region" aria-label="Einstellungen">
+      <h3 style="margin:0">Einstellungen</h3>
+      <div class="controls">
+        <label class="chip"><input type="checkbox" id="op_add" checked> Plus</label>
+        <label class="chip"><input type="checkbox" id="op_sub" checked> Minus</label>
+        <label class="chip"><input type="checkbox" id="op_mul" checked> Mal</label>
+        <label class="chip"><input type="checkbox" id="op_div" checked> Geteilt (ganzzahlig)</label>
+      </div>
+
+      <div class="controls">
+        <span class="chip">Modus:
+          <select id="mode" style="background:#0b1225;color:var(--text);border:2px solid #334155;border-radius:10px;padding:6px">
+            <option value="adaptive" selected>Adaptiv (empfohlen)</option>
+            <option value="fixed">Fixe Schwierigkeit</option>
+          </select>
+        </span>
+        <span class="chip">Level:
+          <input id="level" type="range" min="1" max="10" value="3" />
+          <span id="levelLabel">3</span>
+        </span>
+      </div>
+
+      <div class="panel" style="border-style:dashed">
+        <div style="font-weight:900; margin-bottom:6px">Block-Training</div>
+        <div class="controls">
+          <span class="chip">Aufgaben:
+            <select id="blockSize" style="background:#0b1225;color:var(--text);border:2px solid #334155;border-radius:10px;padding:6px">
+              <option>10</option><option>12</option><option selected>15</option>
+            </select>
+          </span>
+          <button class="btn primary" id="startBlockBtn">Block starten</button>
+        </div>
+        <div style="font-size:13px; color:#9fb0d0">Ein Block vergibt Bonus-XP bei guter Genauigkeit & kurzer Ø Zeit.</div>
+      </div>
+
+      <div class="panel" style="border-style:dashed">
+        <div style="font-weight:900; margin-bottom:6px">Belohnungen & Ränge</div>
+        <ul style="margin:0 0 6px 18px; padding:0">
+          <li>✅ Richtig: <b>10 XP</b> + Zeit-Bonus</li>
+          <li>🔥 Streak-Bonus: +<b>1 XP</b> je richtiger Serie</li>
+          <li>⚡ Schnell (≤3s): +<b>5 XP</b>, (≤6s): +<b>2 XP</b></li>
+          <li>🎯 Block-Bonus: bis zu <b>+50 XP</b> (Genauigkeit & Ø Zeit)</li>
+        </ul>
+        <div style="font-size:13px; color:#9fb0d0">Fortschritt wird pro Profil lokal gespeichert.</div>
+      </div>
+
+      <div class="panel" style="border-style:dashed">
+        <div style="font-weight:900; margin-bottom:6px">Rangfolge</div>
+        <ol style="margin:0 0 6px 18px; padding:0; line-height:1.4">
+          <li>Rookie (0–99)</li><li>Apprentice (100–249)</li><li>Challenger (250–499)</li>
+          <li>Scholar (500–899)</li><li>Master (900–1499)</li><li>Grandmaster (1500–2399)</li><li>Legend (2400+)</li>
+        </ol>
+      </div>
+    </aside>
+  </div>
+
+  <div class="confetti" id="confetti" aria-hidden="true"></div>
+  <div class="result-overlay" id="resultOverlay" aria-hidden="true">
+    <div class="thumb-wrap">
+      <div class="thumb" id="thumbEl">👍</div>
+      <div class="msg" id="thumbMsg"></div>
+    </div>
+  </div>
+  <div class="toast" id="toast"></div>
+
+  <!-- Profile modal -->
+  <div class="modal" id="profilesModal" aria-hidden="true">
+    <div class="box">
+      <h2 style="margin:0 0 8px">Profile verwalten</h2>
+      <div class="grid" style="grid-template-columns:1fr; gap:10px">
+        <div class="controls">
+          <span class="chip">Name:<input id="profileName" placeholder="Name eingeben" style="margin-left:6px;background:#0b1225;color:#fff;border:2px solid #334155;border-radius:10px;padding:6px;min-width:160px"/></span>
+          <button class="btn primary" id="saveProfileBtn">Speichern / Neues Profil</button>
+          <button class="btn ghost" id="closeProfilesBtn">Schließen</button>
+        </div>
+        <div>Avatar wählen:</div>
+        <div class="avatar-grid" id="avatarGrid"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Stats modal -->
+  <div class="modal" id="statsModal" aria-hidden="true">
+    <div class="box">
+      <h2 style="margin:0 0 8px">Lernstatistik</h2>
+      <div class="stats-grid">
+        <div class="stats-cards">
+          <div class="card">Gelöste Aufgaben<br><b id="stTotal">0</b></div>
+          <div class="card">Genauigkeit<br><b id="stAcc">0%</b></div>
+          <div class="card">Ø Zeit<br><b id="stAvg">0.0s</b></div>
+          <div class="card">Beste Serie<br><b id="stBest">0</b></div>
+          <div class="card">Aktuelle Serie<br><b id="stStreak">0</b></div>
+          <div class="card">XP<br><b id="stXP">0</b></div>
+        </div>
+        <div>
+          <div style="margin:10px 0 6px; font-weight:800">Entwicklung – Ø Zeit (rollend)</div>
+          <canvas id="chartTime" width="760" height="240" aria-label="Zeitverlauf"></canvas>
+        </div>
+        <div>
+          <div style="margin:10px 0 6px; font-weight:800">Entwicklung – Trefferquote (rollend)</div>
+          <canvas id="chartAcc" width="760" height="240" aria-label="Genauigkeitsverlauf"></canvas>
+        </div>
+        <div class="controls" style="justify-content:flex-end">
+          <button class="btn ghost" id="exportCsvBtn">CSV exportieren</button>
+          <button class="btn primary" id="closeStatsBtn">Schließen</button>
+        </div>
+        <div id="statsHint" style="font-size:13px; color:#9fb0d0"></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script>
+/* ===== Small helpers & UI map ===== */
+const $ = sel => document.querySelector(sel);
+const opsEls = { add:$("#op_add"), sub:$("#op_sub"), mul:$("#op_mul"), div:$("#op_div") };
+const ui = {
+  q: $("#question"), ans: $("#answer"), submit: $("#submitBtn"), skip: $("#skipBtn"),
+  feedback: $("#feedback"), acc: $("#acc"), streak: $("#streak"),
+  rankFill: $("#rankfill"), xpLabel: $("#xpLabel"), rankName: $("#rankName"), rankBadge: $("#rankBadge"),
+  mode: $("#mode"), level: $("#level"), levelLabel: $("#levelLabel"),
+  avgTime: $("#avgTime"), lastTime: $("#lastTime"), blockFill: $("#blockFill"),
+  blockSize: $("#blockSize"), startBlockBtn: $("#startBlockBtn"),
+  tipBtn: $("#tipBtn"), coachBox: $("#coachBox"), tipBubble: $("#tipBubble"), confetti: $("#confetti"),
+  resultOverlay: $("#resultOverlay"), thumbEl: $("#thumbEl"), thumbMsg: $("#thumbMsg"), toast: $("#toast"),
+  motivation: $("#motivation"), motAvatar: $("#motAvatar"), motText: $("#motText"),
+  celebrate: $("#celebrateBtn"), reset: $("#resetBtn"), kenjiAvatar: $("#kenjiAvatar"),
+  muteToggle: $("#muteToggle"), speechToggle: $("#speechToggle"),
+  profilesModal: $("#profilesModal"), manageProfilesBtn: $("#manageProfilesBtn"),
+  profileSelect: $("#profileSelect"), profileName: $("#profileName"),
+  avatarGrid: $("#avatarGrid"), saveProfileBtn: $("#saveProfileBtn"), closeProfilesBtn: $("#closeProfilesBtn"),
+  statsBtn: $("#statsBtn"), statsModal: $("#statsModal"), closeStatsBtn: $("#closeStatsBtn"),
+  stTotal: $("#stTotal"), stAcc: $("#stAcc"), stAvg: $("#stAvg"), stBest: $("#stBest"), stStreak: $("#stStreak"), stXP: $("#stXP"),
+  chartTime: $("#chartTime"), chartAcc: $("#chartAcc"), statsHint: $("#statsHint"), exportCsvBtn: $("#exportCsvBtn"),
+};
+
+const PRAISES = ["Mega! Weiter so!","Stark gelöst!","Du bist auf Kurs!","Wow – blitzschnell!","Sauber gerechnet!"];
+const ENCOURAGE = ["Knapp daneben – du schaffst das!","Super Versuch! Nächste klappt.","Nicht aufgeben – Kenji glaubt an dich!","Kurz durchatmen und weiter!","Jeder Profi lag mal daneben. Weiter!"];
+const RANKS = [
+  {name:"Rookie", min:0,   max:99},
+  {name:"Apprentice", min:100, max:249},
+  {name:"Challenger", min:250, max:499},
+  {name:"Scholar", min:500, max:899},
+  {name:"Master", min:900, max:1499},
+  {name:"Grandmaster", min:1500, max:2399},
+  {name:"Legend", min:2400, max:Infinity},
+];
+
+/* ===== Avatars (SVG) ===== */
+function avatarSVG(id){
+  if(id==="nova") return `<svg viewBox="0 0 120 120" width="80" height="80">
+    <defs><linearGradient id="skin" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fed7aa"/><stop offset="1" stop-color="#fb923c"/></linearGradient></defs>
+    <ellipse cx="60" cy="44" rx="26" ry="22" fill="url(#skin)"/>
+    <path d="M34 44 C36 16, 86 16, 88 44 L80 36 C70 26, 50 26, 40 36 Z" fill="#38bdf8"/>
+    <rect x="38" y="38" width="44" height="9" rx="5" fill="#a78bfa"/>
+    <circle cx="50" cy="46" r="5" fill="#111"/><circle cx="70" cy="46" r="5" fill="#111"/>
+    <path d="M45 56 Q60 64 75 56" stroke="#111" stroke-width="3" fill="none"/>
+    <path d="M28 80 C44 72, 76 72, 92 80 L86 102 L34 102 Z" fill="#0ea5e9"/>
+  </svg>`;
+  if(id==="sparky") return `<svg viewBox="0 0 120 120" width="80" height="80">
+    <defs><linearGradient id="skin2" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fde68a"/><stop offset="1" stop-color="#f59e0b"/></linearGradient></defs>
+    <ellipse cx="60" cy="44" rx="26" ry="22" fill="url(#skin2)"/>
+    <path d="M32 42 L88 42 L90 48 Q60 60 30 48 Z" fill="#f59e0b"/>
+    <circle cx="50" cy="46" r="5" fill="#111"/><circle cx="70" cy="46" r="5" fill="#111"/>
+    <path d="M45 56 Q60 62 75 56" stroke="#111" stroke-width="3" fill="none"/>
+    <path d="M24 82 C44 70, 76 70, 96 82 L90 104 L30 104 Z" fill="#ef4444"/>
+  </svg>`;
+  if(id==="astro") return `<svg viewBox="0 0 120 120" width="80" height="80">
+    <defs><linearGradient id="skin3" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fecaca"/><stop offset="1" stop-color="#fda4af"/></linearGradient></defs>
+    <ellipse cx="60" cy="44" rx="26" ry="22" fill="url(#skin3)"/>
+    <path d="M28 40 C40 20, 80 20, 92 40 Q80 36 60 36 Q40 36 28 40 Z" fill="#22c55e"/>
+    <circle cx="50" cy="46" r="5" fill="#111"/><circle cx="70" cy="46" r="5" fill="#111"/>
+    <rect x="38" y="38" width="44" height="9" rx="5" fill="#22c55e" opacity=".4"/>
+    <path d="M42 58 Q60 66 78 58" stroke="#111" stroke-width="3" fill="none"/>
+    <path d="M24 82 C44 74, 76 74, 96 82 L88 104 L32 104 Z" fill="#60a5fa"/>
+  </svg>`;
+  return `<svg viewBox="0 0 120 120" width="80" height="80">
+    <defs><linearGradient id="skin4" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fed7aa"/><stop offset="1" stop-color="#fb923c"/></linearGradient></defs>
+    <ellipse cx="60" cy="44" rx="26" ry="22" fill="url(#skin4)"/>
+    <path d="M34 44 C36 16, 86 16, 88 44 L80 36 C70 26, 50 26, 40 36 Z" fill="#0ea5e9"/>
+    <rect x="38" y="38" width="44" height="9" rx="5" fill="#7c3aed"/>
+    <circle cx="50" cy="46" r="5" fill="#111"/><circle cx="70" cy="46" r="5" fill="#111"/>
+    <path d="M45 56 Q60 64 75 56" stroke="#111" stroke-width="3" fill="none"/>
+    <path d="M28 80 C44 72, 76 72, 96 80 L90 102 L34 102 Z" fill="#a78bfa"/>
+  </svg>`;
+}
+const AVATAR_IDS = ["kenji","nova","sparky","astro"];
+
+/* ===== Profiles & State ===== */
+const defaultStats = ()=>({xp:0,correct:0,total:0,streak:0,bestStreak:0,times:[],history:[]});
+
+function saveProfiles(){ localStorage.setItem("jpt:profiles:v3", JSON.stringify(profiles)); }
+function loadProfiles(){
+  try{
+    const raw = localStorage.getItem("jpt:profiles:v3");
+    return raw ? JSON.parse(raw) : {currentId:null, items:[]};
+  }catch(e){
+    return {currentId:null, items:[]};
+  }
+}
+
+let profiles = loadProfiles();
+if(!profiles || !profiles.items || profiles.items.length===0){
+  const id = "p1";
+  profiles = {currentId:id, items:[{id, name:"Johann", avatar:"kenji", settings:{mute:false,speech:false,level:3}, stats:defaultStats()}]};
+  saveProfiles();
+}
+
+function currentProfile(){ return profiles.items.find(p=>p.id===profiles.currentId) || profiles.items[0]; }
+
+function hydrateStateFromProfile(){
+  const p = currentProfile(); const s = (p && p.stats) ? p.stats : defaultStats();
+  return {
+    xp: s.xp||0, correct:s.correct||0, total:s.total||0, streak:s.streak||0, bestStreak:s.bestStreak||0,
+    mode: "adaptive",
+    level: (p && p.settings && p.settings.level) ? p.settings.level : 3,
+    ops:{add:true,sub:true,mul:true,div:true},
+    times: s.times||[]
+  };
+}
+
+function applySettingsToUI(){
+  const p = currentProfile();
+  ui.muteToggle.checked = !!(p.settings && p.settings.mute);
+  ui.speechToggle.checked = !!(p.settings && p.settings.speech);
+  ui.level.value = state.level; ui.levelLabel.textContent = state.level;
+  for(const k of Object.keys(opsEls)) opsEls[k].checked = !!state.ops[k];
+}
+
+function persist(){
+  const p = currentProfile();
+  p.stats = { xp:state.xp, correct:state.correct, total:state.total, streak:state.streak, bestStreak:state.bestStreak, times:state.times, history:(p.stats && p.stats.history) ? p.stats.history : [] };
+  p.settings = p.settings || {}; p.settings.level = state.level;
+  saveProfiles();
+}
+
+function populateProfileSelect(){
+  ui.profileSelect.innerHTML = "";
+  for(const p of profiles.items){
+    const o = document.createElement("option"); o.value = p.id; o.textContent = p.name || "Spieler";
+    if(p.id===profiles.currentId) o.selected = true;
+    ui.profileSelect.appendChild(o);
+  }
+}
+
+/* ===== Game vars ===== */
+let state = hydrateStateFromProfile();
+applySettingsToUI();
+populateProfileSelect();
+
+let currentQ = null, tStart = 0, hintTimer = null, voice = null;
+let block = { active:false, size:15, index:0, correct:0, total:0, times:[], xpEarned:0 };
+
+/* ===== Voices / Speech ===== */
+function initVoices(){
+  const pick = () => {
+    if(!('speechSynthesis' in window)) return;
+    const voices = speechSynthesis.getVoices() || [];
+    const prefer = voices.find(v => /de[-_]/i.test(v.lang) && /Google|Microsoft|Apple|Premium|Natural/i.test(v.name));
+    voice = prefer || voices.find(v => /de[-_]/i.test(v.lang)) || null;
+  };
+  if('speechSynthesis' in window){ speechSynthesis.onvoiceschanged = pick; pick(); }
+}
+function stripHtml(s){ const tmp = document.createElement("div"); tmp.innerHTML = s; return tmp.textContent || tmp.innerText || ""; }
+// kompatibel: ohne \p{…}
+function stripEmoji(text){
+  let out = String(text ?? "");
+  const ranges = [
+    /[\u2700-\u27BF]/g,          // Dingbats
+    /[\uE000-\uF8FF]/g,          // Private Use Area
+    /[\uD83C][\uDF00-\uDFFF]/g,  // U+1F300–1F3FF
+    /[\uD83D][\uDC00-\uDEFF]/g,  // U+1F400–1F6FF
+    /[\uD83E][\uDD00-\uDDFF]/g,  // U+1F900–1F9FF
+    /[\u2600-\u26FF]/g,          // Misc Symbols
+    /[\u2190-\u21FF]/g           // Arrows
+  ];
+  for(const rx of ranges) out = out.replace(rx, "");
+  return out.trim();
+}
+function speak(text){
+  if(!currentProfile().settings.speech) return;
+  if(!("speechSynthesis" in window)) return;
+  const clean = stripEmoji(stripHtml(text)); if(!clean) return;
+  const u = new SpeechSynthesisUtterance(clean);
+  u.lang = (voice && voice.lang) || "de-DE"; u.voice = voice || null; u.rate = 1; u.pitch = 1.05;
+  window.speechSynthesis.cancel(); window.speechSynthesis.speak(u);
+}
+
+/* ===== Sounds (WebAudio) ===== */
+let audioCtx = null;
+function ensureAudio(){ if(audioCtx) return audioCtx; audioCtx = new (window.AudioContext||window.webkitAudioContext)(); return audioCtx; }
+// iOS/Chrome Autoplay-Policy: beim ersten Tap Audio entsperren
+window.addEventListener("pointerdown", () => {
+  try { const ctx = ensureAudio(); if (ctx && ctx.state === "suspended") ctx.resume(); } catch(_) {}
+},{ once:true });
+function tone(freq=440, ms=150, type="sine", gain=0.06){
+  if(currentProfile().settings.mute) return;
+  const ctx = ensureAudio(), o = ctx.createOscillator(), g = ctx.createGain();
+  o.type = type; o.frequency.value = freq; g.gain.value = gain; o.connect(g); g.connect(ctx.destination); o.start();
+  g.gain.setValueAtTime(gain, ctx.currentTime); g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + ms/1000);
+  o.stop(ctx.currentTime + ms/1000 + 0.02);
+}
+function sfxCorrect(){ tone(880,120,"triangle",0.07); setTimeout(()=>tone(1320,120,"triangle",0.06),110); }
+function sfxWrong(){ tone(220,180,"sawtooth",0.06); setTimeout(()=>tone(160,200,"sawtooth",0.05),150); }
+function sfxRank(){ tone(660,120,"square",0.06); setTimeout(()=>tone(990,140,"square",0.05),110); setTimeout(()=>tone(1320,160,"square",0.04),220); }
+
+/* ===== Utility ===== */
+function feedbackCorrect(html){ ui.feedback.innerHTML = `<span class="correct">${html}</span>`; }
+function feedbackWrong(html){ ui.feedback.innerHTML = `<span class="wrong">${html}</span>`; }
+function feedbackNeutral(html){ ui.feedback.innerHTML = `<span class="neutral">${html}</span>`; }
+function r(min,max){ return Math.floor(Math.random()*(max-min+1))+min; }
+function clamp(x,a,b){ return Math.max(a, Math.min(b, x)); }
+function showToast(text){ ui.toast.innerHTML = text; ui.toast.classList.remove("show"); void ui.toast.offsetWidth; ui.toast.classList.add("show"); setTimeout(()=> ui.toast.classList.remove("show"), 2600); }
+
+/* ===== Math tips ===== */
+function strategyFor(q){
+  if(!q) return "Atme tief durch, lies die Aufgabe laut vor und schätze erst – dann rechne.";
+  const {a,b,op} = q;
+  if(op==="add"){
+    if((a%10)+(b%10) >= 10) return `Zehnerübergang: Rechne ${a} + ${b} als (${a} + ${10-(a%10)}) + (${b-(10-(a%10))}).`;
+    return `Tauschaufgabe & Zerlegen: Rechne zuerst die größere Zahl und ergänze auf den nächsten Zehner.`;
+  }
+  if(op==="sub"){
+    if((a%10) < (b%10)) return `Ergänzen: Denke ${a} − ${b} als „Wie viel fehlt von ${b} zu ${a}?“. Erst bis zum vollen Zehner, dann weiter.`;
+    return `Zerlegen: Rechne ${a} − ${b} in zwei Schritten: erst Einer, dann Zehner.`;
+  }
+  if(op==="mul"){
+    if(a===0 || b===0) return "Alles mal Null ist Null.";
+    if(a===1 || b===1) return "Alles mal Eins bleibt gleich.";
+    const big = Math.max(a,b), small = Math.min(a,b);
+    if(small===2) return `Verdoppeln: ${big}×2 = ${big+big}.`;
+    if(small===5) return `×5 = Halbieren und ×10: ${big}×5 = (${big}÷2)×10.`;
+    return `Zerlegen: ${a}×${b} = ${a}×(${Math.floor(b/2)} + ${Math.ceil(b/2)}) = Teilprodukte addieren.`;
+  }
+  if(op==="div"){
+    if(b===1) return `Teilen durch 1 ändert nichts.`;
+    if(a===0) return `Null geteilt durch etwas ist Null.`;
+    return `Umkehraufgabe: „Welche Zahl mal ${b} ergibt ${a}?“`;
+  }
+  return "Lies die Aufgabe noch einmal und markiere dir die wichtigen Zahlen mit dem Finger.";
+}
+
+/* ===== Gameplay ===== */
+function getDifficulty(){
+  if(state.mode==="fixed") return state.level;
+  const acc = state.total ? (state.correct/state.total) : 1;
+  let base = 1 + Math.floor(state.streak/4);
+  if(acc > .9) base += 1; if(acc < .7) base = Math.max(1, base-1);
+  return clamp(base, 1, 10);
+}
+function generateQuestion(level){
+  const span = Math.round(Math.pow(level, 2) * 10);
+  const allowed=[]; if(state.ops.add) allowed.push("add"); if(state.ops.sub) allowed.push("sub"); if(state.ops.mul) allowed.push("mul"); if(state.ops.div) allowed.push("div");
+  const op = allowed[Math.floor(Math.random()*allowed.length)];
+  let a,b,ans,sym;
+  if(op==="add"){ a = r(0, span); b = r(0, span); ans = a+b; sym = "+"; }
+  else if(op==="sub"){ a = r(0, span); b = r(0, span); if(a<b) [a,b]=[b,a]; ans = a-b; sym = "−"; }
+  else if(op==="mul"){ const cap = Math.max(5, Math.round(span/10)); a = r(0, cap); b = r(0, cap); ans = a*b; sym = "×"; }
+  else { const cap = Math.max(3, Math.round(span/12)); b = r(1, cap); const q = r(0, cap); a = b*q; ans = q; sym = "÷"; }
+  return {a,b,ans,sym,op};
+}
+function scheduleHint(){ clearTimeout(hintTimer); hintTimer = setTimeout(() => ui.tipBtn.classList.add("show"), 10000); }
+function hideTip(){ clearTimeout(hintTimer); ui.tipBtn.classList.remove("show"); ui.coachBox.style.display = "none"; }
+function showStrategyTip(){ const tip = strategyFor(currentQ); ui.tipBubble.innerHTML = "💡 <b>Kenji:</b> " + tip; ui.coachBox.style.display = "flex"; speak(tip); }
+
+function newQuestion(silent=false){
+  if(!Object.values(state.ops || {add:true,sub:true,mul:true,div:true}).some(Boolean)){ state.ops = {add:true,sub:true,mul:true,div:true}; opsEls.add.checked = true; }
+  hideTip();
+  currentQ = generateQuestion(getDifficulty());
+  ui.q.textContent = `${currentQ.a} ${currentQ.sym} ${currentQ.b} = ?`;
+  ui.ans.value = ""; ui.ans.focus();
+  tStart = performance.now();
+  scheduleHint();
+  if(!silent){ feedbackNeutral(block.active ? `Aufgabe ${block.index+1||1}/${block.size}` : "Los geht's!"); showBanner("Kenji sagt: Viel Erfolg!", "neutral"); }
+}
+
+function scoreFor(seconds, streak){
+  const base = 10; let bonus = 0;
+  if(seconds <= 3) bonus += 5; else if(seconds <= 6) bonus += 2;
+  bonus += Math.min(streak, 10) * 1;
+  return base + bonus;
+}
+function speedText(s){ if(s<=3) return "⚡"; if(s<=6) return "⏱️"; return ""; }
+
+function addHistoryEntry(ok, secs){
+  const p = currentProfile();
+  p.stats.history = p.stats.history || [];
+  p.stats.history.push({ t: Date.now(), ok: !!ok, s: +secs.toFixed(3) });
+}
+
+function check(){
+  const raw = ui.ans.value.trim(); if(raw===""){ feedbackNeutral("Bitte gib eine Zahl ein."); ui.ans.focus(); return; }
+  const guess = Number(raw);
+  const seconds = ((performance.now() - tStart)/1000);
+  state.total++; state.times.push(seconds);
+  const correct = (guess===currentQ.ans);
+  if(correct){
+    state.correct++; state.streak++; state.bestStreak = Math.max(state.bestStreak, state.streak);
+    const gained = scoreFor(seconds, state.streak); state.xp += gained;
+    const praise = PRAISES[Math.floor(Math.random()*PRAISES.length)];
+    feedbackCorrect(`Richtig! +${gained} XP ${speedText(seconds)} (Streak ${state.streak}) – ${praise}`);
+    visualResult(true, praise); showBanner(praise, "good", "thumbs"); sfxCorrect(); speak(praise);
+    const rankedUp = maybeRankUp();
+    if(block.active){ block.index++; block.total++; block.correct++; block.times.push(seconds); block.xpEarned += gained; updateBlockBar(); }
+    addHistoryEntry(true, seconds);
+    persist(); updateHUD(); hideTip();
+    if(block.active && block.index>=block.size){ endBlock(); } else { setTimeout(()=>newQuestion(true), rankedUp ? 1200 : 550); }
+  } else {
+    const sol = currentQ.ans; const msg = ENCOURAGE[Math.floor(Math.random()*ENCOURAGE.length)];
+    feedbackWrong(`Leider falsch. Richtige Lösung: <b>${sol}</b> – ${msg}`);
+    visualResult(false, msg); showBanner(msg, "bad", "doublethumbs"); sfxWrong(); speak(msg);
+    state.streak = 0;
+    if(block.active){ block.index++; block.total++; block.times.push(seconds); updateBlockBar(); }
+    addHistoryEntry(false, seconds);
+    persist(); updateHUD(); hideTip();
+    if(block.active && block.index>=block.size){ endBlock(); } else { setTimeout(()=>newQuestion(true), 900); }
+  }
+}
+
+function endBlock(){
+  const acc = block.total ? Math.round((block.correct/block.total)*100) : 0;
+  const avg = block.times.length ? (block.times.reduce((a,b)=>a+b,0)/block.times.length) : 0;
+  const accFactor = acc/100; const speedFactor = Math.min(1, 5/Math.max(0.001, avg));
+  const bonus = Math.round(50 * 0.6*accFactor + 50 * 0.4*speedFactor);
+  state.xp += bonus; block.xpEarned += bonus;
+  persist(); updateHUD();
+  celebrate(); sfxRank(); showToast(`Block-Bonus: +${bonus} XP 🎁`);
+  speak(`Block abgeschlossen. ${block.correct} von ${block.total} richtig. Durchschnitt ${avg.toFixed(1)} Sekunden. Bonus ${bonus} Erfahrungspunkte. Super gemacht!`);
+  block.active=false; block.index=0; updateBlockBar();
+}
+function updateBlockBar(){ ui.blockFill.style.width = block.active ? (Math.min(1, block.index/Math.max(1, block.size))*100).toFixed(1)+"%" : "0%"; }
+
+/* ===== HUD / Rank ===== */
+function updateHUD(){
+  const acc = state.total ? Math.round((state.correct/state.total)*100) : 100;
+  ui.acc.textContent = acc + "%"; ui.streak.textContent = state.streak;
+  const rank = getRank(state.xp); const next = nextRankThreshold(state.xp);
+  ui.rankName.textContent = rank.name; ui.rankBadge.textContent = "Rang: " + rank.name;
+  if(next===Infinity){ ui.xpLabel.textContent = `${state.xp} XP – Legend`; ui.rankFill.style.width = "100%"; }
+  else{
+    const currBase = rank.min; const span = next - currBase;
+    const prog = clamp((state.xp - currBase)/span, 0, 1);
+    ui.xpLabel.textContent = `${state.xp} / ${next} XP`; ui.rankFill.style.width = (prog*100).toFixed(1) + "%";
+  }
+  const last = state.times.length ? state.times[state.times.length-1] : 0;
+  const avg = state.times.length ? state.times.reduce((a,b)=>a+b,0)/state.times.length : 0;
+  ui.lastTime.textContent = last.toFixed(1) + "s"; ui.avgTime.textContent = avg.toFixed(1) + "s";
+}
+function getRank(xp){ let current = RANKS[0]; for(const r of RANKS){ if(xp >= r.min) current = r; } return current; }
+function nextRankThreshold(xp){ for(const r of RANKS){ if(xp < r.min) return r.min; } return Infinity; }
+function maybeRankUp(){
+  const prev = getRank(state.xp - 1); const now = getRank(state.xp);
+  if(now.name !== prev.name){
+    const msg = `🏆 Rangaufstieg: <b>${now.name}</b>! Großartig – bleib dran, du wirst richtig schnell!`;
+    feedbackCorrect(msg); celebrate(); sfxRank(); showToast(`Neuer Rang: ${now.name} ✨ Weiter so!`);
+    speak(`Neuer Rang ${now.name}. Tolle Leistung!`);
+    showBanner(`Neuer Rang: ${now.name}!`, "good", "thumbs");
+    return true;
+  }
+  return false;
+}
+
+/* ===== Visual FX & Banner ===== */
+function celebrate(){
+  const colors = ["#60a5fa","#22c55e","#f59e0b","#ef4444","#a78bfa","#34d399","#f472b6"];
+  for(let i=0;i<180;i++){
+    const piece = document.createElement("i");
+    piece.style.left = Math.random()*100 + "vw";
+    piece.style.color = colors[Math.floor(Math.random()*colors.length)];
+    piece.style.animationDuration = 600 + Math.random()*1100 + "ms";
+    piece.style.transform = `translateY(-20px) rotate(${Math.random()*180}deg)`;
+    ui.confetti.appendChild(piece);
+    setTimeout(()=> piece.remove(), 1900);
+  }
+}
+function visualResult(ok, text){
+  ui.resultOverlay.classList.remove("show");
+  ui.thumbEl.className = "thumb " + (ok ? "good" : "bad");
+  ui.thumbEl.textContent = ok ? "👍" : "✨";
+  ui.thumbMsg.textContent = text;
+  void ui.resultOverlay.offsetWidth; ui.resultOverlay.classList.add("show");
+}
+function showBanner(text, kind="neutral", pose="idle"){
+  ui.motivation.classList.add("show");
+  ui.motText.textContent = text;
+  ui.motAvatar.innerHTML = (pose==="thumbs") ? kenjiThumbsUpSVG() :
+                           (pose==="doublethumbs") ? kenjiDoubleThumbsSVG() : kenjiIdleSVG();
+  ui.motivation.style.borderColor = kind==="good" ? "#22c55e" : kind==="bad" ? "#ef4444" : "#39438a";
+}
+/* Kenji poses */
+function kenjiIdleSVG(){ return `
+  <svg width="92" height="92" viewBox="0 0 120 120">
+    <defs><linearGradient id="sk" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fed7aa"/><stop offset="1" stop-color="#fb923c"/></linearGradient></defs>
+    <ellipse cx="60" cy="46" rx="28" ry="24" fill="url(#sk)"/>
+    <path d="M30 46 C32 16, 88 16, 90 46 L82 38 C72 26, 48 26, 38 38 Z" fill="#0ea5e9"/>
+    <rect x="36" y="38" width="48" height="10" rx="5" fill="#7c3aed"/>
+    <circle cx="50" cy="48" r="5" fill="#111"/><circle cx="70" cy="48" r="5" fill="#111"/>
+    <path d="M44 58 Q60 68 76 58" stroke="#111" stroke-width="3" fill="none"/>
+    <path d="M24 86 C44 76, 76 76, 96 86 L90 108 L30 108 Z" fill="#a78bfa"/>
+  </svg>`; }
+function kenjiThumbsUpSVG(){ return `
+  <svg width="92" height="92" viewBox="0 0 140 120">
+    <defs><linearGradient id="sk2" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fed7aa"/><stop offset="1" stop-color="#fb923c"/></linearGradient></defs>
+    <ellipse cx="60" cy="46" rx="28" ry="24" fill="url(#sk2)"/>
+    <path d="M30 46 C32 16, 88 16, 90 46 L82 38 C72 26, 48 26, 38 38 Z" fill="#0ea5e9"/>
+    <rect x="36" y="38" width="48" height="10" rx="5" fill="#7c3aed"/>
+    <circle cx="50" cy="48" r="5" fill="#111"/><circle cx="70" cy="48" r="5" fill="#111"/>
+    <path d="M44 58 Q60 68 76 58" stroke="#111" stroke-width="3" fill="none"/>
+    <path d="M82 68 C96 60, 106 60, 116 66" stroke="#fde047" stroke-width="8" fill="none" stroke-linecap="round"/>
+    <path d="M116 66 q8 4 6 14 q-6 6 -12 0 q-2 -6 6 -14 Z" fill="#fde047" stroke="#a16207" stroke-width="3"/>
+    <path d="M24 86 C44 76, 76 76, 96 86 L90 108 L30 108 Z" fill="#a78bfa"/>
+  </svg>`; }
+function kenjiDoubleThumbsSVG(){ return `
+  <svg width="92" height="92" viewBox="0 0 160 120">
+    <defs><linearGradient id="sk3" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fed7aa"/><stop offset="1" stop-color="#fb923c"/></linearGradient></defs>
+    <ellipse cx="80" cy="46" rx="28" ry="24" fill="url(#sk3)"/>
+    <path d="M50 46 C52 16, 108 16, 110 46 L102 38 C92 26, 68 26, 58 38 Z" fill="#0ea5e9"/>
+    <rect x="56" y="38" width="48" height="10" rx="5" fill="#7c3aed"/>
+    <circle cx="70" cy="48" r="5" fill="#111"/><circle cx="90" cy="48" r="5" fill="#111"/>
+    <path d="M64 58 Q80 68 96 58" stroke="#111" stroke-width="3" fill="none"/>
+    <path d="M44 70 C54 62, 60 62, 68 66" stroke="#fde047" stroke-width="8" fill="none" stroke-linecap="round"/>
+    <path d="M36 66 q-8 4 -6 14 q6 6 12 0 q2 -6 -6 -14 Z" fill="#fde047" stroke="#a16207" stroke-width="3"/>
+    <path d="M116 70 C106 62, 100 62, 92 66" stroke="#fde047" stroke-width="8" fill="none" stroke-linecap="round"/>
+    <path d="M124 66 q8 4 6 14 q-6 6 12 0 q-2 -6 6 -14 Z" fill="#fde047" stroke="#a16207" stroke-width="3"/>
+    <path d="M44 86 C64 76, 96 76, 116 86 L110 108 L50 108 Z" fill="#a78bfa"/>
+  </svg>`; }
+
+/* ===== Stats & charts ===== */
+function openStats(){
+  const p = currentProfile(); const s = p.stats || defaultStats();
+  const total = s.total||0, correct = s.correct||0, acc = total? Math.round(correct/total*100): 0;
+  const avg = s.times && s.times.length ? (s.times.reduce((a,b)=>a+b,0)/s.times.length) : 0;
+  ui.stTotal.textContent = total; ui.stAcc.textContent = acc + "%"; ui.stAvg.textContent = avg.toFixed(1) + "s";
+  ui.stBest.textContent = s.bestStreak||0; ui.stStreak.textContent = s.streak||0; ui.stXP.textContent = s.xp||0;
+
+  const hist = (s.history||[]).slice(-300);
+  ui.statsHint.textContent = hist.length ? "Tipp: Die Kurven zeigen einen gleitenden Durchschnitt (Fenster 10 Aufgaben)." :
+                                           "Noch keine Verlaufsdaten vorhanden. Löse ein paar Aufgaben, dann erscheinen hier Kurven.";
+  drawTimeChart(hist, ui.chartTime, 10);
+  drawAccChart(hist, ui.chartAcc, 10);
+  ui.statsModal.classList.add("show");
+}
+function exportCSV(){
+  const p = currentProfile(); const hist = (p.stats.history||[]);
+  const rows = [["timestamp","iso","correct","seconds"]];
+  hist.forEach(e=>{ const d = new Date(e.t); rows.push([e.t, d.toISOString(), e.ok?1:0, e.s]); });
+  const csv = rows.map(r=>r.join(",")).join("\n");
+  const blob = new Blob([csv], {type:"text/csv"}); const url = URL.createObjectURL(blob);
+  const a = document.createElement("a"); a.href = url; a.download = "MatheTrainer-Statistik.csv"; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(url), 500);
+}
+function drawTimeChart(hist, canvas, win){
+  const ctx = canvas.getContext("2d"); const w = canvas.width, h = canvas.height; ctx.clearRect(0,0,w,h);
+  const data = rolling(hist.map(x=>x.s), win); const max = Math.max(3, Math.max(...data, 0));
+  axes(ctx, w, h, "Sekunden", 0, max); line(ctx, data, w, h, 0, max);
+}
+function drawAccChart(hist, canvas, win){
+  const ctx = canvas.getContext("2d"); const w = canvas.width, h = canvas.height; ctx.clearRect(0,0,w,h);
+  const data = rolling(hist.map(x=>x.ok?1:0), win);
+  axes(ctx, w, h, "Trefferquote", 0, 1); line(ctx, data, w, h, 0, 1);
+}
+function rolling(arr, win){
+  const out=[]; let sum=0;
+  for(let i=0;i<arr.length;i++){ sum+=arr[i]; if(i>=win) sum-=arr[i-win]; out.push(sum/Math.min(i+1,win)); }
+  return out;
+}
+function axes(ctx, w, h, label, min, max){
+  ctx.save(); ctx.strokeStyle = "#2b376e"; ctx.fillStyle = "#9fb0d0"; ctx.lineWidth=2;
+  ctx.beginPath(); ctx.moveTo(40,10); ctx.lineTo(40,h-30); ctx.lineTo(w-10,h-30); ctx.stroke();
+  ctx.font="12px system-ui"; ctx.fillText(label, 8, 16);
+  for(let i=0;i<=4;i++){
+    const y = map(i/4, 0,1, h-30, 10);
+    ctx.strokeStyle="#1b244f"; ctx.beginPath(); ctx.moveTo(40,y); ctx.lineTo(w-10,y); ctx.stroke();
+    const val = (min + (1-i/4)*(max-min)); ctx.fillStyle="#9fb0d0"; ctx.fillText(val.toFixed(max<=3?1:0), 6, y+4);
+  }
+  ctx.restore();
+}
+function line(ctx, data, w, h, min, max){
+  if(data.length<2) return;
+  ctx.save(); ctx.strokeStyle = "#60a5fa"; ctx.lineWidth=2; ctx.beginPath();
+  const left=40, right=w-10, bottom=h-30, top=10, spanX = Math.max(1, data.length-1);
+  data.forEach((v,i)=>{ const x = left + (i/spanX)*(right-left); const y = map((v-min)/(max-min), 0,1, bottom, top); if(i===0) ctx.moveTo(x,y); else ctx.lineTo(x,y); });
+  ctx.stroke(); ctx.restore();
+}
+function map(t, aMin, aMax, bMin, bMax){ return bMin + (t-aMin)*(bMax-bMin)/(aMax-aMin); }
+
+/* ===== Profiles UI ===== */
+function onProfileChange(){
+  profiles.currentId = ui.profileSelect.value; saveProfiles();
+  state = hydrateStateFromProfile(); applySettingsToUI();
+  updateHUD(); newQuestion(true);
+}
+function openProfiles(){
+  ui.avatarGrid.innerHTML = "";
+  AVATAR_IDS.forEach(id=>{
+    const d = document.createElement("div"); d.className="avatar"; d.dataset.id=id; d.innerHTML = avatarSVG(id);
+    if(currentProfile().avatar===id) d.classList.add("selected");
+    d.addEventListener("click", ()=>{
+      document.querySelectorAll(".avatar").forEach(a=>a.classList.remove("selected"));
+      d.classList.add("selected"); ui.avatarGrid.dataset.selected = id;
+    });
+    ui.avatarGrid.appendChild(d);
+  });
+  ui.profileName.value = currentProfile().name || "";
+  ui.avatarGrid.dataset.selected = currentProfile().avatar || "kenji";
+  ui.profilesModal.classList.add("show");
+}
+function saveOrCreateProfile(){
+  const name = ui.profileName.value.trim() || "Spieler";
+  const avatar = ui.avatarGrid.dataset.selected || "kenji";
+  const cur = currentProfile();
+  if(cur){ cur.name = name; cur.avatar = avatar; if(!cur.settings) cur.settings = {mute:false,speech:false,level:3}; }
+  else{
+    const id = "p"+(Math.random().toString(36).slice(2,7));
+    profiles.items.push({id, name, avatar, settings:{mute:false,speech:false,level:3}, stats:defaultStats()});
+    profiles.currentId = id;
+  }
+  saveProfiles(); populateProfileSelect(); ui.profilesModal.classList.remove("show");
+}
+
+/* ===== Events ===== */
+ui.submit.addEventListener("click", check);
+ui.skip.addEventListener("click", () => { feedbackNeutral("Aufgabe übersprungen."); newQuestion(true); });
+ui.ans.addEventListener("keydown", e => { if(e.key==="Enter"){ check(); } if(e.key===" "){ e.preventDefault(); ui.skip.click(); } });
+ui.reset.addEventListener("click", resetProgress);
+ui.celebrate.addEventListener("click", celebrate);
+ui.mode.addEventListener("change", () => { state.mode = ui.mode.value; persist(); });
+ui.level.addEventListener("input", () => { ui.levelLabel.textContent = ui.level.value; });
+ui.level.addEventListener("change", () => { state.level = +ui.level.value; persist(); newQuestion(true); });
+for (const [k,el] of Object.entries(opsEls)){ el.addEventListener("change", ()=>{ state.ops[k]=el.checked; persist(); newQuestion(true); }); }
+ui.tipBtn.addEventListener("click", showStrategyTip);
+
+ui.startBlockBtn.addEventListener("click", () => {
+  block.size = +ui.blockSize.value;
+  block.active = true; block.index = 0; block.correct = 0; block.total = 0; block.times = []; block.xpEarned = 0;
+  updateBlockBar(); speak("Block gestartet. Viel Erfolg!"); showToast(`Block gestartet: ${block.size} Aufgaben`); newQuestion(true);
+});
+
+ui.manageProfilesBtn.addEventListener("click", openProfiles);
+ui.closeProfilesBtn.addEventListener("click", ()=> ui.profilesModal.classList.remove("show"));
+ui.saveProfileBtn.addEventListener("click", saveOrCreateProfile);
+ui.profileSelect.addEventListener("change", onProfileChange);
+ui.muteToggle.addEventListener("change", ()=>{ currentProfile().settings.mute = ui.muteToggle.checked; saveProfiles(); });
+ui.speechToggle.addEventListener("change", ()=>{ currentProfile().settings.speech = ui.speechToggle.checked; saveProfiles(); });
+
+ui.statsBtn.addEventListener("click", openStats);
+ui.closeStatsBtn.addEventListener("click", ()=> ui.statsModal.classList.remove("show"));
+ui.exportCsvBtn.addEventListener("click", exportCSV);
+
+/* ===== Reset ===== */
+function resetProgress(){
+  if(confirm("Fortschritt dieses Profils wirklich löschen? (XP, Genauigkeit, Serien, Zeiten, Verlauf)")){
+    const p = currentProfile(); p.stats = defaultStats(); saveProfiles();
+    state = hydrateStateFromProfile(); updateHUD(); newQuestion(true);
+  }
+}
+
+/* ===== Block/HUD helpers ===== */
+function updateBlockBar(){ ui.blockFill.style.width = block.active ? (Math.min(1, block.index/Math.max(1, block.size))*100).toFixed(1)+"%" : "0%"; }
+
+/* ===== Init & SW ===== */
+function updateAfterLoad(){
+  initVoices();
+  updateHUD();
+  ui.kenjiAvatar.innerHTML = kenjiIdleSVG();
+  newQuestion();
+  // Service Worker registrieren
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('./service-worker.js').catch(()=>{});
+  }
+}
+window.addEventListener("load", updateAfterLoad);
+</script>
+</body>
+</html>
+
