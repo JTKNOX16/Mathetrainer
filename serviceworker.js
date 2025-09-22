@@ -1,5 +1,5 @@
 // service-worker.js
-const CACHE_NAME = 'mathetrainer-v3';
+const CACHE_NAME = 'mathetrainer-v4';
 const ASSETS = [
   './',
   './index.html',
@@ -41,3 +41,4 @@ self.addEventListener('fetch', (event) => {
     );
   }
 });
+
