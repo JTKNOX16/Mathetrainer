@@ -216,7 +216,7 @@
   <div class="panel grid cols" role="region" aria-label="Spielbereich">
     <section class="grid" aria-live="polite">
       <div class="question" id="question">Bereit?</div>
-    <form class="answerrow" id="answerForm" onsubmit="return false;">
+    <form class="answerrow" id="answerForm" autocomplete="off" novalidate>
   <input id="answer" type="number" inputmode="numeric" step="1" pattern="[0-9]*" aria-label="Antwort eingeben" />
   <button class="btn primary" id="submitBtn" type="submit">Antwort prüfen ⏎</button>
   <button class="btn ghost" id="skipBtn" type="button" title="Neue Aufgabe (ohne Wertung)">Überspringen</button>
@@ -619,17 +619,15 @@ if (answerForm) {
   });
 }
 
+// Im Eingabefeld nur Space (= Überspringen) behandeln.
+// Enter/NumpadEnter lassen wir durch → das Formular löst den Submit aus.
 ui.ans.addEventListener("keydown", (e) => {
-  if (e.key === "Enter" || e.key === "NumpadEnter") {
-    // Formular-submit übernimmt jetzt das Prüfen
-    e.preventDefault();
-    return;
-  }
-  if (e.key === " ") {
+  if (e.code === "Space" || e.key === " ") {
     e.preventDefault();
     ui.skip.click();
   }
 });
+
 
 ui.reset.addEventListener("click", resetProgress);
 ui.celebrate.addEventListener("click", celebrate);
@@ -1194,5 +1192,6 @@ function resetProgress(){
 
 </body>
 </html>
+
 
 
