@@ -898,7 +898,22 @@ function saveSharePrefs(){
   localStorage.setItem("lom_share", ui.shareToggle.checked ? "1":"0");
   localStorage.setItem("lom_autopub", ui.autoPublishToggle.checked ? "1":"0");
 }
+// ===== XP-Berechnung & Speed-Icon (wurde beim Mergen wohl ausgelassen) =====
+function scoreFor(seconds, streak){
+  const base = 10;
+  let bonus = 0;
+  if (seconds <= 3) bonus += 5;
+  else if (seconds <= 6) bonus += 2;
+  bonus += Math.min(streak, 10) * 1;
+  return base + bonus;
+}
+function speedText(s){
+  if (s <= 3) return "⚡";
+  if (s <= 6) return "⏱️";
+  return "";
+}
 
+  
 /* ================== HUD / Rank / Prestige ================== */
 function updateHUD(){
   const acc = state.total ? Math.round((state.correct/state.total)*100) : 100;
@@ -1179,4 +1194,5 @@ function resetProgress(){
 
 </body>
 </html>
+
 
